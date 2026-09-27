@@ -12,7 +12,8 @@ Behavioral specification for the native engine, derived from reading the deploye
 
 - Each sphere: `{id, regionId, x, y, vx, vy, radius}` with `radius = 0.28`.
 - Spawn: for each sphere, try up to 40 random positions with `x ∈ [0.88, 15.12]`, `y ∈ [0.88, 9.12]`, accepting the first whose distance to every earlier sphere is greater than `3 × radius` (after 40 tries keep the last candidate). Heading is a uniform angle in `[0, 2π)`. Speed is `uniform(2.2, 3.1) × globalSpeedScale × profile(wave).speedScale`, where `globalSpeedScale` defaults to 1.
-- Movement: each step moves the sphere by `v × dt`, then clamps it inside its own region. Crossing `minX`/`maxX` sets `x` to the edge ± radius and forces `vx` to point inward (absolute value); same for `y`. Spheres never leave their region; they do not collide with each other.
+- Movement: each step moves the sphere by `v × dt`, then clamps it inside its own region. Crossing `minX`/`maxX` sets `x` to the edge ± radius and forces `vx` to point inward (absolute value); same for `y`. Spheres never leave their region.
+- Sphere collisions (**deliberate divergence from the reference**, which lets spheres pass through each other): after movement, every overlapping pair in the same region is pushed apart equally along the line between centers; if the pair is approaching, the two spheres exchange their velocity components along that line (equal-mass elastic collision, kinetic energy conserved). Both spheres are then re-clamped inside their region. Pairs are resolved once per tick in index order, which keeps the simulation deterministic.
 
 ## Difficulty profiles
 

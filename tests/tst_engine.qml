@@ -210,4 +210,53 @@ TestCase {
     near(game.timeRemaining, 104)
     near(game.spheres[0].x, 2 + 30 / 120)
   }
+
+  function movingSphere(id, x, y, vx, vy) {
+    return { id: id, regionId: 1, x: x, y: y, vx: vx, vy: vy, radius: 0.28 }
+  }
+
+  function kineticEnergy(spheres) {
+    return spheres.reduce(function(sum, sphere) { return sum + sphere.vx * sphere.vx + sphere.vy * sphere.vy }, 0)
+  }
+
+  function test_headOnSpheresBounceApart() {
+    var game = runningGame()
+    game.spheres = [movingSphere(1, 5, 5, 2, 0), movingSphere(2, 5.5, 5, -2, 0)]
+
+    Engine.step(game, 0.01, { advanceClock: false })
+    near(game.spheres[0].vx, -2)
+    near(game.spheres[1].vx, 2)
+    var gap = game.spheres[1].x - game.spheres[0].x
+    verify(gap >= 0.56 - 0.000001, "spheres still overlap: " + gap)
+  }
+
+  function test_separatingSpheresAreLeftAlone() {
+    var game = runningGame()
+    game.spheres = [movingSphere(1, 5, 5, -2, 0), movingSphere(2, 5.5, 5, 2, 0)]
+
+    Engine.step(game, 0.01, { advanceClock: false })
+    near(game.spheres[0].vx, -2)
+    near(game.spheres[1].vx, 2)
+  }
+
+  function test_glancingCollisionConservesEnergy() {
+    var game = runningGame()
+    game.spheres = [movingSphere(1, 5, 5, 2.5, 0.4), movingSphere(2, 5.4, 5.3, -0.5, 0)]
+    var before = kineticEnergy(game.spheres)
+
+    Engine.step(game, 0.01, { advanceClock: false })
+    near(kineticEnergy(game.spheres), before)
+    verify(game.spheres[1].vx > 0, "struck sphere should be pushed away")
+  }
+
+  function test_collisionNearAWallKeepsSpheresInsideTheirRegion() {
+    var game = runningGame()
+    game.spheres = [movingSphere(1, 0.3, 5, 0, 0), movingSphere(2, 0.7, 5, -3, 0)]
+
+    Engine.step(game, 0.01, { advanceClock: false })
+    game.spheres.forEach(function(sphere) {
+      verify(sphere.x >= sphere.radius - 0.000001, "sphere left the field: " + sphere.x)
+    })
+    verify(game.spheres[1].vx >= 0)
+  }
 }

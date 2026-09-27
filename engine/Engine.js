@@ -300,28 +300,77 @@ function growWall(game, dt) {
     completeWall(game, wall)
 }
 
+function regionOf(game, sphere) {
+  return game.regions.find(function(candidate) { return candidate.id === sphere.regionId })
+}
+
+// Clamps a sphere inside its region and turns its velocity back inward at each edge.
+function keepInsideRegion(sphere, region) {
+  if (sphere.x < region.minX + sphere.radius) {
+    sphere.x = region.minX + sphere.radius
+    sphere.vx = Math.abs(sphere.vx)
+  } else if (sphere.x > region.maxX - sphere.radius) {
+    sphere.x = region.maxX - sphere.radius
+    sphere.vx = -Math.abs(sphere.vx)
+  }
+
+  if (sphere.y < region.minY + sphere.radius) {
+    sphere.y = region.minY + sphere.radius
+    sphere.vy = Math.abs(sphere.vy)
+  } else if (sphere.y > region.maxY - sphere.radius) {
+    sphere.y = region.maxY - sphere.radius
+    sphere.vy = -Math.abs(sphere.vy)
+  }
+}
+
+// Equal-mass elastic collision: overlapping spheres are pushed apart along the line
+// between their centers and, if approaching, exchange their velocity along that line.
+function collidePair(a, b) {
+  var dx = b.x - a.x
+  var dy = b.y - a.y
+  var distance = Math.hypot(dx, dy)
+  var contact = a.radius + b.radius
+  if (distance >= contact) return false
+
+  var nx = distance > 0 ? dx / distance : 1
+  var ny = distance > 0 ? dy / distance : 0
+  var push = (contact - distance) / 2
+  a.x -= nx * push
+  a.y -= ny * push
+  b.x += nx * push
+  b.y += ny * push
+
+  var approach = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny
+  if (approach < 0) {
+    a.vx += approach * nx
+    a.vy += approach * ny
+    b.vx -= approach * nx
+    b.vy -= approach * ny
+  }
+  return true
+}
+
+function collideSpheres(game) {
+  var spheres = game.spheres
+  for (var i = 0; i < spheres.length; i++) {
+    for (var j = i + 1; j < spheres.length; j++) {
+      var a = spheres[i]
+      var b = spheres[j]
+      if (a.regionId !== b.regionId || !collidePair(a, b)) continue
+      var region = regionOf(game, a)
+      keepInsideRegion(a, region)
+      keepInsideRegion(b, region)
+    }
+  }
+}
+
 function moveSpheres(game, dt) {
   game.spheres.forEach(function(sphere) {
-    var region = game.regions.find(function(candidate) { return candidate.id === sphere.regionId })
     sphere.x += sphere.vx * dt
     sphere.y += sphere.vy * dt
-
-    if (sphere.x < region.minX + sphere.radius) {
-      sphere.x = region.minX + sphere.radius
-      sphere.vx = Math.abs(sphere.vx)
-    } else if (sphere.x > region.maxX - sphere.radius) {
-      sphere.x = region.maxX - sphere.radius
-      sphere.vx = -Math.abs(sphere.vx)
-    }
-
-    if (sphere.y < region.minY + sphere.radius) {
-      sphere.y = region.minY + sphere.radius
-      sphere.vy = Math.abs(sphere.vy)
-    } else if (sphere.y > region.maxY - sphere.radius) {
-      sphere.y = region.maxY - sphere.radius
-      sphere.vy = -Math.abs(sphere.vy)
-    }
+    keepInsideRegion(sphere, regionOf(game, sphere))
   })
+  collideSpheres(game)
 }
 
 function elapseTime(game, dt) {
