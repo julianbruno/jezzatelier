@@ -1,14 +1,19 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import "components"
 
 Item {
   id: root
   property var shell: null
   property var manifest: null
   property bool opened: false
+  property bool reducedMotion: false
 
-  function open(payloadJson) { root.opened = true }
+  function open(payloadJson) {
+    root.opened = true
+    view.restoreFocus()
+  }
   function close() { root.opened = false }
   function dismiss() {
     root.close()
@@ -23,21 +28,18 @@ Item {
   PanelWindow {
     visible: root.opened
     anchors { top: true; bottom: true; left: true; right: true }
-    color: "#101c19"
+    color: "#101b17"
     WlrLayershell.namespace: "jezz-atelier"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
 
-    Text {
-      anchors.centerIn: parent
-      color: "#f5eedb"
-      text: "Jezz Atelier — gameplay coming soon (Esc to close)"
-    }
-    Item {
+    GameView {
+      id: view
       anchors.fill: parent
-      focus: true
-      Keys.onEscapePressed: root.dismiss()
+      opened: root.opened
+      reducedMotion: root.reducedMotion
+      onDismissRequested: root.dismiss()
     }
   }
 }

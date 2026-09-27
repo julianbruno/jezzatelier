@@ -114,7 +114,7 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
   - Authored lines: engine 393, tests 213, manifest 10, overlay placeholder 43, engine spec in `odd/specs/engine-rules.md`.
   - Commit evidence: pending.
 
-- [ ] **JZA-002 — Build the native fullscreen gameplay overlay**
+- [x] **JZA-002 — Build the native fullscreen gameplay overlay**
   - Route: delegated writer.
   - Trigger: multi-file QML UI and input implementation.
   - Implement official overlay lifecycle and host-aware close behavior.
@@ -122,7 +122,15 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
   - Support keyboard and pointer controls, local 1P/2P, responsive layouts, reduced motion, and visible focus.
   - Add or extend behavior tests before implementation changes.
   - Checks: focused `qmltestrunner`, `qmllint`, headless/safe overlay smoke test where available.
-  - Commit evidence: pending.
+  - RED: Qt 6 runner before implementation: missing `components`, `engine/Input.js`, and `engine/Layout.js`; `Totals: 11 passed, 4 failed, 0 skipped, 0 blacklisted, 30ms`.
+  - GREEN: Qt 6 runner after implementation: `Totals: 26 passed, 0 failed, 0 skipped, 0 blacklisted, 47ms`.
+  - REFACTOR: renamed the controller's `state` property (collided with QQuickItem), bound repeater delegates, removed unused/unsupported imports; an added full GameView smoke caught the reserved `escape` method name (`23 passed, 1 failed`), corrected it, and final tests stayed green: `Totals: 27 passed, 0 failed, 0 skipped, 0 blacklisted, 48ms`.
+  - Validation: Qt 6 lint exit 0, only `Warning: JezzAtelier.qml:28:3: Type PanelWindow is not creatable. [uncreatable-type]`; `omarchy plugin validate .` exit 0. Board and HUD instantiated offscreen; PanelWindow/live shell not exercised.
+  - Parent review RED: new tests for keyboard-only menu/pause flow, preview refresh on simulation updates, frame-hitch clock protection, and segment geometry failed first: `Totals: 27 passed, 4 failed`.
+  - Parent review GREEN/REFACTOR: preview now re-evaluates on every published revision; `P` resumes from pause; Enter/Space trigger the dialog's primary action; frame time is capped at 0.25 s so hitches cannot drain the clock; dialog copy moved from nested ternaries into named functions; triplicated wall geometry replaced by `WallSegment` + `Layout.segmentRect` with thickness scaled to board size. `Totals: 31 passed, 0 failed, 0 skipped, 0 blacklisted`.
+  - Visual evidence: offscreen `GameView` renders at 1280×720 and 900×1200 (menu, running 2P, paused dialog, claimed region with growing wall and invalid preview) matched expectations. PanelWindow, Wayland focus, and live-shell lifecycle remain unverified until JZA-004 smoke checks.
+  - Authored lines: 870 (overlay entry, components, input/layout helpers, and their tests).
+  - Commit evidence: committed on `feat/jezz-atelier-overlay`.
 
 - [ ] **JZA-003 — Add collection media, audio, preferences, and scores**
   - Route: delegated writer.
@@ -182,4 +190,4 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
 
 ## Next step
 
-Create `feat/jezz-atelier-overlay` from the engine branch and run JZA-002 (native fullscreen gameplay overlay) with strict TDD on the Qt 6 toolchain.
+Create `feat/jezz-atelier-collection` from the overlay branch and run JZA-003 (artwork, audio, preferences, high scores). Media sourcing needs verified public-domain/CC0 provenance for every asset.
