@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.julianbruno.jezz-atelier",
+  "name": "Jezz Atelier",
+  "version": "0.1.0",
+  "author": "Julian Bruno",
+  "description": "A native JezzBall-inspired kinetic gallery game",
+  "kinds": ["overlay"],
+  "entryPoints": {"overlay": "JezzAtelier.qml"}
+}

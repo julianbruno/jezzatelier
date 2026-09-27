@@ -70,8 +70,11 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
 
 - Mode: strict TDD.
 - Source: explicit user decision in this session.
-- Primary runner: `qmltestrunner -input tests -import . -import "$OMARCHY_PATH/shell"`.
-- Static validation: `qmllint -I "$OMARCHY_PATH/shell"` over every QML entry point and component.
+- Primary runner: `QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input tests -import . -import "$OMARCHY_PATH/shell"`.
+- Static validation: `/usr/lib/qt6/bin/qmllint -I "$OMARCHY_PATH/shell"` over every QML entry point and component.
+- Toolchain note: `/usr/bin/qmltestrunner` and `/usr/bin/qmllint` belong to `qt5-declarative` and must not be used; the Qt 5 runner exits 1 silently on Qt 6 unversioned imports. Qt 6 tools come from `qt6-declarative 6.11.2-1`.
+- Known lint baseline: `PanelWindow ... [uncreatable-type]` is also reported for the official `reminders/ReminderFlow.qml` and is not a plugin defect.
+- Engine behavior source: `odd/specs/engine-rules.md` (reference-derived rules, original prose).
 - Manifest validation: `omarchy plugin validate .`.
 - TDD evidence must record observed RED, GREEN, and REFACTOR outcomes for engine and persistence behavior.
 
@@ -92,13 +95,23 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
 
 ## Tasks
 
-- [ ] **JZA-001 — Establish the plugin contract and tested game engine** *(in progress)*
+- [x] **JZA-BLOCKER — Rebind Pi to the initialized Git repository** *(resolved: Pi reloaded from the repository)*
+  - Restart or reload Pi from `/home/julian/miscodigos/jezzatelier` so the parent session owns the new clone and can register delegated worktrees.
+  - Reconcile the task file and Engram mirror, confirm `feat/jezz-atelier-engine`, then relaunch the bounded JZA-001 writer.
+  - Evidence: the original writer launch, explicit `workspace_root`, explicit `repository_root`, and `session_worktree_register` all failed before child execution because this session started before `git init`.
+
+- [x] **JZA-001 — Establish the plugin contract and tested game engine**
   - Route: delegated writer.
   - Trigger: multi-file implementation and TDD preparation.
   - Create the schema-1 manifest and repository structure.
   - Write failing Qt Quick tests for difficulty profiles, deterministic reset, wall placement, collision/life loss, region claiming, scoring, timer loss, level progression, and hot-seat turn rotation.
   - Implement the reusable QML JavaScript engine until tests pass, then refactor.
   - Checks: focused `qmltestrunner`, manifest validation, static lint for created QML.
+  - RED: Qt 6 runner `Script .../engine/Engine.js unavailable`, `Totals: 0 passed, 1 failed` before the engine existed.
+  - GREEN: `Totals: 11 passed, 0 failed, 0 skipped, 0 blacklisted`.
+  - REFACTOR: parent review expanded the compacted writer output into readable named helpers (`resetField`, `openRegionAt`, `completeWall`, `breakWall`, `growWall`, `moveSpheres`, `award`), normalized difficulty ids to `relaxed`/`classic`/`expert` for stable persistence keys, made `nextLevel` return a boolean, and strengthened the clock test to measure the 30-tick cap by sphere displacement. Tests stayed green: `Totals: 11 passed, 0 failed`.
+  - Checks: Qt 6 `qmllint` reports only the known `PanelWindow` baseline warning; `omarchy plugin validate .` exits 0; a Node smoke run of 600 frames at 60 fps stays `running` with the clock at 95 s.
+  - Authored lines: engine 393, tests 213, manifest 10, overlay placeholder 43, engine spec in `odd/specs/engine-rules.md`.
   - Commit evidence: pending.
 
 - [ ] **JZA-002 — Build the native fullscreen gameplay overlay**
@@ -151,7 +164,11 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
 - Strict TDD selected.
 - Local repository initialized on `feat/jezz-atelier-plugin`.
 - Feature Branch Chain selected; tracker and four child slices defined.
-- JZA-001 started.
+- Planning baseline committed as `a995e1c3c7d8070058868c2e44388d7bdc4b58e7`.
+- Engine child branch `feat/jezz-atelier-engine` created.
+- First JZA-001 writer draft was reviewed and discarded: it used a cell grid instead of the reference region geometry, double-counted the anchor cell on collision, invented scoring/progression formulas, and its checks ran Qt 5 tools. Manifest and lifecycle placeholder were kept; engine and tests restart from RED.
+- Reference engine rules extracted from the deployed bundle into `odd/specs/engine-rules.md`.
+- JZA-001 engine and tests written from RED to GREEN, then refactored for readability after parent review; committed on `feat/jezz-atelier-engine`.
 
 ## Verification evidence
 
@@ -159,7 +176,10 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
 - `pacman -Q omarchy`: `omarchy 4.0.4-1`.
 - `qmltestrunner`, `qmllint`, and Chromium are available locally.
 - Reference desktop and mobile pages were rendered successfully in headless Chromium.
+- JZA-001 Qt 6 tests: `Totals: 11 passed, 0 failed, 0 skipped, 0 blacklisted, 4ms`.
+- Qt 6 lint (`JezzAtelier.qml tests/tst_engine.qml`): only the known `PanelWindow` uncreatable-type warning; exit 0.
+- `omarchy plugin validate .`: no output; exit 0.
 
 ## Next step
 
-Commit the planning baseline on the tracker branch, create `feat/jezz-atelier-engine`, and execute JZA-001 with observed TDD evidence.
+Create `feat/jezz-atelier-overlay` from the engine branch and run JZA-002 (native fullscreen gameplay overlay) with strict TDD on the Qt 6 toolchain.
