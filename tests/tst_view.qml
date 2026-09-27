@@ -5,10 +5,14 @@ import "../engine/Engine.js" as Engine
 
 TestCase {
   name: "View"
+  width: 1280
+  height: 800
   Component { id: boardComponent; GameBoard { width: 640; height: 400 } }
   Component { id: hudComponent; GameHud {} }
   Component { id: menuComponent; MenuPanel { width: 560 } }
   Component { id: viewComponent; GameView { width: 1280; height: 720 } }
+  when: windowShown
+
   function test_viewOffscreen() {
     var view = createTemporaryObject(viewComponent, this)
     verify(view !== null)
@@ -27,7 +31,11 @@ TestCase {
     verify(board !== null)
     verify(hud !== null)
     compare(board.claimedCount, 1)
-    compare(hud.playerLabel, "PLAYER 1 OF 2")
+    compare(hud.maxLives, 3)
+    compare(hud.timeFraction, 1)
+    compare(hud.coverageFraction, 0)
+    near(hud.targetFraction, 0.75)
+    compare(hud.playerScoresVisible, true)
   }
 
   function test_keyboardOnlyFlow() {
@@ -116,5 +124,56 @@ TestCase {
     verify(audio !== null)
     compare(audio.trackSource.toString().slice(-12), "bach-01.opus")
     audio.destroy()
+  }
+
+  function near(actual, expected) {
+    verify(Math.abs(actual - expected) < 0.000001, actual + " != " + expected)
+  }
+
+  function test_orientationIsDiscoverableAndSwitchable() {
+    var view = createTemporaryObject(viewComponent, this)
+    view.opened = true
+    view.begin()
+    compare(view.orientationLabel(), "↕  VERTICAL CUT")
+    view.rotate()
+    compare(view.controller.snapshot.orientation, "horizontal")
+    compare(view.orientationLabel(), "↔  HORIZONTAL CUT")
+  }
+
+  function test_wheelRotatesOncePerNotch() {
+    var board = createTemporaryObject(boardComponent, this, {
+      snapshot: Engine.createGame(1, {})
+    })
+    var rotations = 0
+    board.rotated.connect(function() { rotations++ })
+    board.handleWheel(120)
+    compare(rotations, 1)
+    for (var i = 0; i < 4; i++) board.handleWheel(-15)
+    compare(rotations, 1)
+    for (var j = 0; j < 4; j++) board.handleWheel(-15)
+    compare(rotations, 2)
+  }
+
+  function test_rejectedPlacementExplainsWhy() {
+    var view = createTemporaryObject(viewComponent, this)
+    view.opened = true
+    view.begin()
+    view.controller.gameState.spheres = [{ id: 1, regionId: 1, x: 12, y: 5, vx: 0, vy: 0, radius: 0.28 }]
+
+    verify(!view.placeAt(12.1, 5))
+    compare(view.toastText, "Too close to a sphere or an edge")
+    compare(view.toastTone, "loss")
+
+    verify(view.placeAt(4, 4))
+    compare(view.controller.snapshot.growingWall !== null, true)
+    verify(!view.placeAt(6, 6))
+    compare(view.toastText, "One wall at a time")
+  }
+
+  function test_ultrawideUsesSidePanel() {
+    var wide = createTemporaryObject(viewComponent, this, { width: 2560, height: 1080 })
+    verify(wide.wideLayout)
+    var standard = createTemporaryObject(viewComponent, this, { width: 1280, height: 800 })
+    verify(!standard.wideLayout)
   }
 }

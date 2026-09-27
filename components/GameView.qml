@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import "Theme.js" as Theme
 import "../engine/Input.js" as Input
 import "../engine/Collection.js" as Collection
 import "../engine/Storage.js" as Storage
@@ -19,8 +20,12 @@ Item {
   property int newHighScoreRank: 0
   property real cursorX: 8
   property real cursorY: 5
+  property string toastText: ""
+  property string toastTone: "info"
 
   readonly property bool reducedMotion: preferences.reducedMotion
+  // Ultrawide screens get a side panel so the 16:10 board can use the full height.
+  readonly property bool wideLayout: width / Math.max(1, height) > 1.9
   readonly property string status: game.snapshot.status
   readonly property bool dialogVisible: menuVisible || status !== "running"
   readonly property bool musicShouldPlay: opened && !menuVisible && status === "running"
@@ -50,6 +55,41 @@ Item {
     menuVisible = false
     game.start()
     restoreFocus()
+  }
+
+  function showToast(text, tone) {
+    toastText = text
+    toastTone = tone
+    toastTimer.restart()
+  }
+
+  // Returns whether a wall was started; explains a refusal in a toast.
+  function placeAt(x, y) {
+    if (game.placeAt(x, y)) return true
+    showToast(Events.placementRejection(game.snapshot, game.previewAt(x, y)), "loss")
+    return false
+  }
+
+  function rotate() {
+    game.toggleOrientation()
+  }
+
+  function orientationLabel() {
+    return game.snapshot.orientation === "vertical" ? "↕  VERTICAL CUT" : "↔  HORIZONTAL CUT"
+  }
+
+  function reactToSnapshot(previous, next) {
+    if (!opened || !previous) return
+
+    Events.soundEvents(previous, next).forEach(function(name) { root.soundRequested(name) })
+    var messages = Events.feedback(previous, next)
+    if (messages.length > 0) {
+      var texts = messages.map(function(message) { return message.text })
+      showToast(texts.join("  ·  "), messages[0].tone)
+    }
+    board.flashClaims(Events.newlyClaimed(previous, next))
+    if (next.lives < previous.lives) board.flashLoss()
+    if (previous.status !== "game-over" && next.status === "game-over") recordGameOver()
   }
 
   function updatePreference(key, value) {
@@ -89,7 +129,7 @@ Item {
   }
 
   function dialogTitle() {
-    if (menuVisible) return "A gallery in motion"
+    if (menuVisible) return "JEZZ ATELIER"
     if (status === "paused") return "Paused"
     if (status === "level-clear") return "Wave " + game.snapshot.wave + " complete."
     if (status === "game-over") return "Game over"
@@ -97,7 +137,7 @@ Item {
   }
 
   function dialogMessage() {
-    if (menuVisible) return "Claim empty space without touching the moving spheres."
+    if (menuVisible) return "A gallery in motion"
     if (status === "level-clear") {
       var next = Collection.artworkForWave(game.snapshot.wave + 1,
         preferences.randomArtwork, preferences.artworkId)
@@ -151,9 +191,9 @@ Item {
       cursorX = next.x
       cursorY = next.y
     } else if (action === "place") {
-      game.placeAt(cursorX, cursorY)
+      placeAt(cursorX, cursorY)
     } else if (action === "rotate") {
-      game.toggleOrientation()
+      rotate()
     } else if (action === "pause") {
       game.togglePause()
     } else {
@@ -168,48 +208,144 @@ Item {
 
   GameController {
     id: game
+
     property var previousSnapshot: null
+
     onSnapshotChanged: {
-      var events = Events.soundEvents(previousSnapshot, snapshot)
-      if (root.opened) events.forEach(function(name) { root.soundRequested(name) })
-      if (previousSnapshot && previousSnapshot.status !== "game-over"
-          && snapshot.status === "game-over") root.recordGameOver()
+      root.reactToSnapshot(previousSnapshot, snapshot)
       previousSnapshot = snapshot
     }
   }
 
-  Rectangle {
-    anchors.fill: parent
-    color: "#101b17"
+  Timer {
+    id: toastTimer
+    interval: 1800
+    onTriggered: root.toastText = ""
   }
 
-  ColumnLayout {
+  Rectangle {
     anchors.fill: parent
-    anchors.margins: Math.max(16, Math.min(root.width, root.height) * 0.035)
-    spacing: 12
+    color: Theme.ink
+  }
 
-    Text {
-      Layout.alignment: Qt.AlignHCenter
-      text: "JEZZ ATELIER"
-      color: "#e7cc92"
-      font.family: "serif"
-      font.pixelSize: Math.max(26, Math.min(48, root.width / 25))
-    }
+  // The menu sits on the painting it is about to reveal.
+  Image {
+    anchors.fill: parent
+    visible: root.menuVisible
+    source: Qt.resolvedUrl("../" + root.currentArtwork.file)
+    fillMode: Image.PreserveAspectCrop
+    asynchronous: true
+    sourceSize.width: Math.ceil(width / 2)
+    opacity: 0.22
+  }
 
-    GameHud {
-      Layout.fillWidth: true
-      visible: !root.menuVisible
-      snapshot: game.snapshot
+  GridLayout {
+    id: layout
+
+    anchors.fill: parent
+    anchors.margins: Math.max(16, Math.min(root.width, root.height) * 0.03)
+    visible: !root.menuVisible
+    columns: root.wideLayout ? 2 : 1
+    rowSpacing: 12
+    columnSpacing: 36
+
+    ColumnLayout {
+      Layout.fillWidth: !root.wideLayout
+      Layout.preferredWidth: root.wideLayout ? Math.min(420, root.width * 0.2) : -1
+      Layout.fillHeight: root.wideLayout
+      Layout.alignment: Qt.AlignTop
+      spacing: root.wideLayout ? 22 : 10
+
+      Flow {
+        Layout.fillWidth: true
+        spacing: 28
+
+        Text {
+          id: gameTitle
+          text: "JEZZ ATELIER"
+          color: Theme.goldBright
+          font.family: Theme.serif
+          font.pixelSize: root.wideLayout ? 32 : 26
+          font.letterSpacing: 2
+        }
+
+        GameHud {
+          width: root.wideLayout ? parent.width : parent.width - gameTitle.width - parent.spacing
+          snapshot: game.snapshot
+        }
+      }
+
+      Flow {
+        Layout.fillWidth: true
+        spacing: 10
+
+        AtelierButton {
+          implicitHeight: 38
+          label: root.orientationLabel()
+          selected: true
+          onActivated: {
+            root.rotate()
+            root.restoreFocus()
+          }
+        }
+
+        AtelierButton {
+          implicitHeight: 38
+          label: "PAUSE"
+          onActivated: {
+            game.togglePause()
+            root.restoreFocus()
+          }
+        }
+
+        AtelierButton {
+          implicitHeight: 38
+          label: "MENU"
+          onActivated: root.showMenu()
+        }
+      }
+
+      Item {
+        visible: root.wideLayout
+        Layout.fillHeight: true
+      }
+
+      Text {
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        text: "Now showing\n" + root.currentArtwork.title + " — " + root.currentArtwork.creator
+          + " (" + root.currentArtwork.date + ")"
+        color: Theme.goldBright
+        font.family: Theme.serif
+        font.italic: true
+        font.pixelSize: 15
+        visible: root.wideLayout
+      }
+
+      Text {
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        text: root.wideLayout
+          ? "CLICK  build\nRIGHT-CLICK · WHEEL · R  rotate\nARROWS + SPACE  build from keyboard\nP  pause     ESC  pause / close"
+          : "CLICK BUILD  ·  RIGHT-CLICK, WHEEL OR R ROTATE  ·  ARROWS + SPACE BUILD FROM KEYBOARD  ·  P PAUSE  ·  ESC PAUSE / CLOSE"
+        color: Theme.gold
+        font.pixelSize: 11
+        font.letterSpacing: 0.8
+        lineHeight: 1.4
+      }
     }
 
     GameBoard {
+      id: board
+
       Layout.fillWidth: true
       Layout.fillHeight: true
-      visible: !root.menuVisible
       snapshot: game.snapshot
       randomArtwork: root.preferences.randomArtwork
       artworkId: root.preferences.artworkId
       brightness: root.preferences.brightness
+      reducedMotion: root.reducedMotion
+      interactive: root.status === "running"
       preview: root.preview
       cursorX: root.cursorX
       cursorY: root.cursorY
@@ -219,41 +355,67 @@ Item {
         root.cursorY = y
       }
       onPlaced: function(x, y) {
-        game.placeAt(x, y)
+        root.placeAt(x, y)
         root.restoreFocus()
       }
       onRotated: {
-        game.toggleOrientation()
+        root.rotate()
         root.restoreFocus()
       }
     }
 
-    Item {
-      Layout.fillHeight: true
-      visible: root.menuVisible
-    }
-
     Text {
+      visible: !root.wideLayout
       Layout.fillWidth: true
-      visible: !root.menuVisible
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
-      text: "Now showing: " + root.currentArtwork.title + " — " + root.currentArtwork.creator
+      text: "Now showing  " + root.currentArtwork.title + " — " + root.currentArtwork.creator
         + " (" + root.currentArtwork.date + ")"
-      color: "#e7cc92"
-      font.family: "serif"
+      color: Theme.goldBright
+      font.family: Theme.serif
+      font.italic: true
       font.pixelSize: 15
+    }
+  }
+
+  Rectangle {
+    id: toast
+
+    readonly property color accent: root.toastTone === "loss"
+      ? Theme.danger
+      : (root.toastTone === "gain" ? Theme.goldBright : Theme.focus)
+
+    x: layout.x + board.x + board.box.x + (board.box.width - width) / 2
+    y: layout.y + board.y + board.box.y + 18
+    width: toastLabel.implicitWidth + 36
+    height: toastLabel.implicitHeight + 16
+    radius: height / 2
+    visible: opacity > 0
+    opacity: root.toastText.length > 0 && !root.dialogVisible ? 1 : 0
+    color: "#e6101b17"
+    border.color: accent
+    border.width: 2
+
+    Behavior on opacity {
+      enabled: !root.reducedMotion
+      NumberAnimation { duration: 180 }
     }
 
     Text {
-      Layout.fillWidth: true
-      visible: !root.menuVisible
-      text: "ARROWS MOVE · SHIFT + ARROWS FAST · SPACE / ENTER PLACE · R OR RIGHT CLICK ROTATE · P PAUSE · ESC PAUSE / CLOSE"
-      wrapMode: Text.Wrap
-      horizontalAlignment: Text.AlignHCenter
-      color: "#c8ad72"
-      font.pixelSize: 12
+      id: toastLabel
+      anchors.centerIn: parent
+      text: root.toastText
+      color: toast.accent
+      font.pixelSize: 16
+      font.bold: true
     }
+  }
+
+  Rectangle {
+    anchors.fill: parent
+    visible: root.dialogVisible && !root.menuVisible
+    color: Theme.ink
+    opacity: 0.62
   }
 
   Rectangle {
@@ -261,9 +423,10 @@ Item {
     width: Math.min(parent.width - 32, 600)
     height: Math.min(parent.height - 32, content.implicitHeight + 40)
     visible: root.dialogVisible
-    color: "#1a2b24"
-    border.color: "#c8ad72"
+    color: Theme.surface
+    border.color: Theme.gold
     border.width: 2
+    radius: 6
 
     Column {
       id: content
@@ -278,9 +441,10 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.Wrap
         text: root.dialogTitle()
-        color: "#f5eedb"
-        font.family: "serif"
-        font.pixelSize: 27
+        color: root.menuVisible ? Theme.goldBright : Theme.ivory
+        font.family: Theme.serif
+        font.pixelSize: root.menuVisible ? 38 : 28
+        font.letterSpacing: root.menuVisible ? 4 : 0
       }
 
       Text {
@@ -294,6 +458,8 @@ Item {
       MenuPanel {
         visible: root.menuVisible
         width: parent.width
+        // Everything in the dialog except the section content takes about 330 px.
+        maxContentHeight: Math.max(160, root.height - 360)
         preferences: root.preferences
         highScores: root.highScores
         artwork: root.currentArtwork
@@ -305,6 +471,7 @@ Item {
       AtelierButton {
         width: content.width
         label: root.primaryLabel()
+        primary: true
         onActivated: root.primaryAction()
       }
 

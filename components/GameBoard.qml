@@ -1,10 +1,12 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import "Theme.js" as Theme
 import "../engine/Layout.js" as Layout
 import "../engine/Collection.js" as Collection
 
 // Renders one engine snapshot inside a letterboxed 16:10 field and reports pointer input
-// in world coordinates.
+// in world coordinates. Repeaters are driven by counts, not by the snapshot arrays, so
+// delegates survive the per-frame snapshot swap and only their bindings update.
 Item {
   id: root
 
@@ -13,18 +15,24 @@ Item {
   property bool randomArtwork: true
   property string artworkId: Collection.artworks[0].id
   property int brightness: 82
+  property bool reducedMotion: false
+  property bool interactive: false
   property real cursorX: 8
   property real cursorY: 5
+  property real wheelTravel: 0
 
   readonly property var artwork: Collection.artworkForWave(snapshot ? snapshot.wave : 1, randomArtwork, artworkId)
   readonly property url artworkSource: Qt.resolvedUrl("../" + artwork.file)
   // Unclaimed field stays veiled so claiming visibly uncovers the painting;
   // brightness 100 keeps a light veil, 45 a heavy one.
   readonly property real veilOpacity: 0.3 + (100 - brightness) / 55 * 0.45
-
   readonly property var box: Layout.fit(width, height)
   readonly property real unit: box.width / 16
   readonly property var growingWall: snapshot ? snapshot.growingWall : null
+  // Fallbacks for the instant a shrinking snapshot array outruns its Repeater's count.
+  readonly property var emptyRegion: ({ id: 0, minX: 0, maxX: 0, minY: 0, maxY: 0, claimed: false })
+  readonly property var emptyWall: ({ orientation: "vertical", x: 0, y: 0, negativeLimit: 0, positiveLimit: 0 })
+  readonly property var emptySphere: ({ id: 1, x: 0, y: 0, radius: 0 })
   readonly property int claimedCount: snapshot
     ? snapshot.regions.filter(function(region) { return region.claimed }).length
     : 0
@@ -41,6 +49,30 @@ Item {
   function insideBox(pixelX, pixelY) {
     return pixelX >= box.x && pixelX <= box.x + box.width
       && pixelY >= box.y && pixelY <= box.y + box.height
+  }
+
+  function regionRect(region) {
+    var topLeft = Layout.toPixel(box, region.minX, region.minY)
+    var bottomRight = Layout.toPixel(box, region.maxX, region.maxY)
+    return { x: topLeft.x, y: topLeft.y, width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y }
+  }
+
+  // Briefly lights up newly claimed regions.
+  function flashClaims(regions) {
+    if (reducedMotion) return
+    regions.forEach(function(region) { claimFlash.createObject(root, { rect: root.regionRect(region) }) })
+  }
+
+  // Touchpads report many small deltas; rotate once per full wheel notch (120).
+  function handleWheel(deltaY) {
+    wheelTravel += deltaY
+    if (Math.abs(wheelTravel) < 120) return
+    wheelTravel = 0
+    rotated()
+  }
+
+  function flashLoss() {
+    if (!reducedMotion) lossFlash.restart()
   }
 
   Item {
@@ -61,28 +93,31 @@ Item {
 
     Rectangle {
       anchors.fill: parent
-      color: "#101b17"
+      color: Theme.ink
       opacity: root.veilOpacity
     }
   }
 
   Repeater {
-    model: root.snapshot ? root.snapshot.regions : []
+    model: root.snapshot ? root.snapshot.regions.length : 0
 
     Item {
-      required property var modelData
-      readonly property var topLeft: Layout.toPixel(root.box, modelData.minX, modelData.minY)
-      readonly property var bottomRight: Layout.toPixel(root.box, modelData.maxX, modelData.maxY)
+      id: regionView
 
-      visible: modelData.claimed
-      x: topLeft.x
-      y: topLeft.y
-      width: bottomRight.x - topLeft.x
-      height: bottomRight.y - topLeft.y
+      required property int index
+      readonly property var region: root.snapshot.regions[index] || root.emptyRegion
+      readonly property var rect: root.regionRect(region)
+
+      visible: region.claimed
+      x: rect.x
+      y: rect.y
+      width: rect.width
+      height: rect.height
       clip: true
+
       Image {
-        x: root.box.x - parent.x
-        y: root.box.y - parent.y
+        x: root.box.x - regionView.x
+        y: root.box.y - regionView.y
         width: root.box.width
         height: root.box.height
         source: root.artworkSource
@@ -90,12 +125,6 @@ Item {
         asynchronous: true
         sourceSize.width: Math.ceil(root.box.width)
         sourceSize.height: Math.ceil(root.box.height)
-      }
-      Rectangle {
-        anchors.fill: parent
-        color: "transparent"
-        border.color: "#d7b979"
-        border.width: Math.max(1, root.unit * 0.025)
       }
     }
   }
@@ -106,21 +135,24 @@ Item {
     width: root.box.width
     height: root.box.height
     color: "transparent"
-    border.color: "#c8ad72"
-    border.width: Math.max(2, root.unit * 0.04)
+    border.color: Theme.gold
+    border.width: Math.max(2, root.unit * 0.05)
   }
 
   Repeater {
-    model: root.snapshot ? root.snapshot.walls : []
+    model: root.snapshot ? root.snapshot.walls.length : 0
 
     WallSegment {
-      required property var modelData
+      required property int index
+      readonly property var wall: root.snapshot.walls[index] || root.emptyWall
+
       box: root.box
-      orientation: modelData.orientation
-      fixed: modelData.orientation === "vertical" ? modelData.x : modelData.y
-      from: modelData.negativeLimit
-      to: modelData.positiveLimit
-      color: "#e6c584"
+      orientation: wall.orientation
+      fixed: wall.orientation === "vertical" ? wall.x : wall.y
+      from: wall.negativeLimit
+      to: wall.positiveLimit
+      thickness: 0.09
+      color: Theme.wall
     }
   }
 
@@ -131,56 +163,111 @@ Item {
     fixed: root.growingWall ? (orientation === "vertical" ? root.growingWall.x : root.growingWall.y) : 0
     from: root.growingWall ? root.growingWall.negativeEnd : 0
     to: root.growingWall ? root.growingWall.positiveEnd : 0
-    thickness: 0.1
-    color: "#6de3e5"
-  }
-
-  Repeater {
-    model: root.snapshot ? root.snapshot.spheres : []
-
-    Rectangle {
-      required property var modelData
-      readonly property var center: Layout.toPixel(root.box, modelData.x, modelData.y)
-
-      width: modelData.radius * 2 * root.unit
-      height: width
-      x: center.x - width / 2
-      y: center.y - height / 2
-      radius: width / 2
-      color: "#f4e9d1"
-      border.color: "#b59757"
-    }
+    thickness: 0.26
+    color: Theme.focus
+    opacity: 0.3
   }
 
   WallSegment {
-    visible: root.preview !== null && root.preview.regionId !== null
+    visible: root.growingWall !== null
+    box: root.box
+    orientation: root.growingWall ? root.growingWall.orientation : "vertical"
+    fixed: root.growingWall ? (orientation === "vertical" ? root.growingWall.x : root.growingWall.y) : 0
+    from: root.growingWall ? root.growingWall.negativeEnd : 0
+    to: root.growingWall ? root.growingWall.positiveEnd : 0
+    thickness: 0.11
+    color: "#bff6f7"
+  }
+
+  WallSegment {
+    visible: root.interactive && root.growingWall === null && root.preview !== null && root.preview.regionId !== null
     box: root.box
     orientation: root.preview ? root.preview.orientation : "vertical"
     fixed: root.preview ? (orientation === "vertical" ? root.preview.x : root.preview.y) : 0
     from: root.preview && root.preview.regionId !== null ? root.preview.negativeLimit : 0
     to: root.preview && root.preview.regionId !== null ? root.preview.positiveLimit : 0
     thickness: 0.05
-    color: root.preview && root.preview.valid ? "#6de3e5" : "#ec827d"
-    opacity: 0.75
+    color: root.preview && root.preview.valid ? Theme.focus : Theme.danger
+    opacity: 0.7
+  }
+
+  Repeater {
+    model: root.snapshot ? root.snapshot.spheres.length : 0
+
+    Sphere {
+      required property int index
+      readonly property var sphere: root.snapshot.spheres[index] || root.emptySphere
+      readonly property var center: Layout.toPixel(root.box, sphere.x, sphere.y)
+
+      width: sphere.radius * 2 * root.unit
+      height: width
+      x: center.x - width / 2
+      y: center.y - height / 2
+      tint: Theme.sphereTint(sphere.id)
+    }
+  }
+
+  WallCursor {
+    readonly property var center: Layout.toPixel(root.box, root.cursorX, root.cursorY)
+
+    visible: root.interactive
+    size: Math.max(18, root.unit * 0.42)
+    x: center.x - width / 2
+    y: center.y - height / 2
+    orientation: root.snapshot && root.snapshot.orientation ? root.snapshot.orientation : "vertical"
+    valid: root.preview !== null && root.preview.valid
   }
 
   Rectangle {
-    readonly property var center: Layout.toPixel(root.box, root.cursorX, root.cursorY)
-
-    width: Math.max(12, root.unit * 0.3)
-    height: width
-    x: center.x - width / 2
-    y: center.y - height / 2
-    radius: width / 2
+    id: lossBorder
+    x: root.box.x
+    y: root.box.y
+    width: root.box.width
+    height: root.box.height
     color: "transparent"
-    border.color: "#6de3e5"
-    border.width: 2
+    border.color: Theme.danger
+    border.width: Math.max(4, root.unit * 0.12)
+    opacity: 0
+
+    SequentialAnimation on opacity {
+      id: lossFlash
+      running: false
+      NumberAnimation { to: 1; duration: 80 }
+      NumberAnimation { to: 0; duration: 520; easing.type: Easing.OutCubic }
+    }
+  }
+
+  Component {
+    id: claimFlash
+
+    Rectangle {
+      id: flash
+
+      property var rect: ({ x: 0, y: 0, width: 0, height: 0 })
+
+      x: rect.x
+      y: rect.y
+      width: rect.width
+      height: rect.height
+      color: Theme.goldBright
+      border.color: Theme.ivory
+      border.width: 2
+
+      SequentialAnimation on opacity {
+        running: true
+        NumberAnimation { from: 0.55; to: 0; duration: 650; easing.type: Easing.OutQuad }
+        ScriptAction { script: flash.destroy() }
+      }
+    }
   }
 
   MouseArea {
     anchors.fill: parent
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton | Qt.RightButton
+    cursorShape: root.interactive && containsMouse && root.insideBox(mouseX, mouseY)
+      ? Qt.BlankCursor
+      : Qt.ArrowCursor
 
     onPositionChanged: function(mouse) {
       var point = root.clampedWorld(mouse.x, mouse.y)
@@ -194,6 +281,10 @@ Item {
         var point = Layout.toWorld(root.box, mouse.x, mouse.y)
         root.placed(point.x, point.y)
       }
+    }
+
+    onWheel: function(wheel) {
+      root.handleWheel(wheel.angleDelta.y)
     }
   }
 }

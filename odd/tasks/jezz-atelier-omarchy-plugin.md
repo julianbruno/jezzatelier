@@ -88,7 +88,8 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
   1. `feat/jezz-atelier-engine` → tracker branch.
   2. `feat/jezz-atelier-overlay` → engine branch.
   3. `feat/jezz-atelier-collection` → overlay branch.
-  4. `feat/jezz-atelier-release` → collection branch.
+  4. `feat/jezz-atelier-polish` → collection branch (added after user play-testing).
+  5. `feat/jezz-atelier-release` → polish branch.
 - Forecast: approximately 1,800–2,600 authored changed lines, excluding bundled media and generated preview files.
 - Each child keeps one coherent work unit with its tests and documentation. If an honest slice still exceeds the review heuristic, record the exact count and recommend `size:exception` rather than compressing code.
 - No push, remote repository creation, pull request creation, marketplace submission, or merge is authorized yet.
@@ -160,6 +161,14 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
   - Add persistence/metadata tests first and record RED/GREEN/REFACTOR evidence.
   - Checks: focused tests, media inventory checks, license/source audit, lint, manifest validation.
   - Commit evidence: pending.
+
+- [x] **JZA-005 — Gameplay and UI polish from user play-testing**
+  - Trigger: user feedback after the first live run — spheres lacked texture, spheres passed through each other, horizontal cutting was not discoverable (it existed behind `R`/right-click with no visible affordance), and the UI/UX needed work.
+  - Engine (strict TDD; RED `12 passed, 4 failed` → GREEN): equal-mass elastic sphere-sphere collisions with separation and re-clamping, documented in `odd/specs/engine-rules.md` as a deliberate divergence from the reference. Node stress run, 9 Expert spheres × 10 simulated minutes × 4 seeds: energy drift 0.000000 %, no escapes, no NaN, worst residual overlap 0.0044 units (triple contacts).
+  - Presentation (strict TDD for logic; RED `3 passed, 5 failed` for `Events.feedback/placementRejection/newlyClaimed`, view RED `10 passed, 4 failed`): lacquered spheres (`Sphere.qml`, reference nine-color palette, radial shading, clear-coat highlight, contact shadow); oriented `WallCursor` with arrowheads; visible `↕ VERTICAL CUT / ↔ HORIZONTAL CUT` toggle, wheel rotation (once per 120-unit notch), right-click and `R`; toasts for captures, broken walls, turn changes, and refused placements with the reason; gold flash on newly claimed regions and red board flash on life loss (both off with reduced motion); HUD with stat blocks, life dots, time and coverage gauges with goal marker, and highlighted active player; action bar for pointer-only play; scrim behind in-game dialogs; menu over the current painting with the title in the dialog header, primary START, segmented 1P/2P choice, and a three-line how-to that names rotation; ultrawide side-panel layout (aspect > 1.9) so the board uses full height on 2560×1080.
+  - Performance fix found in review: board Repeaters were bound to snapshot arrays that are replaced every frame, recreating every sphere and region delegate at 60 fps. They now use counts, so delegates persist and only bindings update.
+  - Focus: the overlay re-requests keyboard focus when the layer-shell window becomes visible.
+  - Checks: `Totals: 62 passed, 0 failed`; Qt 6 lint only the `PanelWindow` baseline; offscreen captures at 2560×1080, 1920×1200, and 1280×800 reviewed.
 
 - [ ] **JZA-004 — Finish publication packaging and release evidence**
   - Route: delegated writer.

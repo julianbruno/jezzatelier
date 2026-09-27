@@ -61,6 +61,11 @@ Item {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
 
+    // The layer surface only accepts keyboard focus once mapped, so ask again here.
+    onVisibleChanged: {
+      if (visible) view.restoreFocus()
+    }
+
     GameView {
       id: view
       anchors.fill: parent

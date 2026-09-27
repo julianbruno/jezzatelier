@@ -11,6 +11,7 @@ Column {
   property var highScores: []
   property var artwork: Collection.artworks[0]
   property string section: "Play"
+  property real maxContentHeight: 340
 
   readonly property var sections: ["Play", "Gallery", "Settings", "Scores", "Credits"]
   readonly property var difficultyNotes: ({
@@ -73,7 +74,7 @@ Column {
 
   Flickable {
     width: root.width
-    height: Math.min(340, sectionContent.implicitHeight)
+    height: Math.min(root.maxContentHeight, sectionContent.implicitHeight)
     contentHeight: sectionContent.implicitHeight
     clip: true
 
@@ -112,10 +113,41 @@ Column {
           color: "#f5eedb"
         }
 
-        AtelierButton {
-          width: root.width
-          label: root.preferences.playerCount === 2 ? "2 PLAYERS · HOT-SEAT" : "1 PLAYER"
-          onActivated: root.preferenceRequested("playerCount", root.preferences.playerCount === 2 ? 1 : 2)
+        Text {
+          text: "PLAYERS"
+          color: "#c8ad72"
+          font.pixelSize: 12
+        }
+
+        Row {
+          spacing: 8
+
+          AtelierButton {
+            width: (root.width - 8) / 2
+            implicitWidth: 0
+            label: "1 PLAYER"
+            selected: root.preferences.playerCount !== 2
+            onActivated: root.preferenceRequested("playerCount", 1)
+          }
+
+          AtelierButton {
+            width: (root.width - 8) / 2
+            implicitWidth: 0
+            label: "2 PLAYERS · HOT-SEAT"
+            selected: root.preferences.playerCount === 2
+            onActivated: root.preferenceRequested("playerCount", 2)
+          }
+        }
+
+        Text {
+          width: parent.width
+          wrapMode: Text.Wrap
+          color: "#e7cc92"
+          font.pixelSize: 13
+          lineHeight: 1.35
+          text: "Click to grow a wall; right-click, the wheel, or R turns it horizontal or vertical. "
+            + "Enclose space with no sphere inside to uncover the painting. "
+            + "A sphere touching a growing wall breaks it and costs a life."
         }
       }
 

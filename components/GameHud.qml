@@ -1,28 +1,99 @@
+pragma ComponentBehavior: Bound
 import QtQuick
+import "Theme.js" as Theme
+import "../engine/Engine.js" as Engine
 
+// Game status: wave, score, lives, time and coverage gauges, and hot-seat scores.
 Flow {
   id: root
+
   property var snapshot: null
-  readonly property string playerLabel: snapshot ? "PLAYER " + (snapshot.activePlayer + 1) + " OF " + snapshot.playerCount : ""
-  spacing: 14
+
+  readonly property var waveProfile: snapshot ? Engine.profile(snapshot.wave, snapshot.difficulty) : null
+  readonly property int maxLives: snapshot ? Engine.profile(1, snapshot.difficulty).lives : 0
+  readonly property real timeFraction: waveProfile ? snapshot.timeRemaining / waveProfile.timeLimit : 0
+  readonly property real coverageFraction: snapshot ? snapshot.coverage : 0
+  readonly property real targetFraction: snapshot ? snapshot.targetCoverage : 0
+  readonly property bool timeRunningOut: snapshot !== null && snapshot.timeRemaining < 15
+  readonly property bool playerScoresVisible: snapshot !== null && snapshot.playerCount === 2
+
+  spacing: 28
+
+  StatBlock {
+    caption: "WAVE"
+    value: root.snapshot ? String(root.snapshot.wave) : ""
+  }
+
+  StatBlock {
+    caption: "SCORE"
+    value: root.snapshot ? root.snapshot.score.toLocaleString(Qt.locale("en_US"), "f", 0) : ""
+  }
+
+  StatBlock {
+    caption: "LIVES"
+
+    Row {
+      spacing: 6
+
+      Repeater {
+        model: root.maxLives
+
+        Rectangle {
+          required property int index
+          width: 14
+          height: 14
+          radius: 7
+          color: index < root.snapshot.lives ? Theme.danger : "transparent"
+          border.color: Theme.danger
+          border.width: 2
+        }
+      }
+    }
+  }
+
+  StatBlock {
+    caption: "TIME"
+    value: root.snapshot ? Math.ceil(root.snapshot.timeRemaining) + " s" : ""
+    valueColor: root.timeRunningOut ? Theme.danger : Theme.ivory
+
+    ProgressBar {
+      fraction: root.timeFraction
+      fill: root.timeRunningOut ? Theme.danger : Theme.focus
+    }
+  }
+
+  StatBlock {
+    caption: "CLAIMED · GOAL " + Math.round(root.targetFraction * 100) + "%"
+    value: Math.round(root.coverageFraction * 100) + "%"
+    valueColor: root.coverageFraction >= root.targetFraction ? Theme.goldBright : Theme.ivory
+
+    ProgressBar {
+      fraction: root.coverageFraction
+      target: root.targetFraction
+    }
+  }
+
   Repeater {
-    model: root.snapshot ? [
-      "WAVE " + root.snapshot.wave,
-      "TIME " + Math.ceil(root.snapshot.timeRemaining) + "s",
-      "SCORE " + root.snapshot.score,
-      "LIVES " + root.snapshot.lives,
-      "COVERAGE " + Math.round(root.snapshot.coverage * 100) + "% / " + Math.round(root.snapshot.targetCoverage * 100) + "%",
-      root.playerLabel,
-      root.snapshot.playerCount === 2 ? "P1 " + root.snapshot.playerScores[0] + " · P2 " + root.snapshot.playerScores[1] : "",
-      root.snapshot.orientation.toUpperCase()
-    ] : []
-    Text {
-      required property string modelData
-      visible: modelData.length > 0
-      text: modelData
-      color: "#f5eedb"
-      font.pixelSize: 13
-      font.bold: true
+    model: root.playerScoresVisible ? 2 : 0
+
+    Rectangle {
+      id: playerCard
+
+      required property int index
+      readonly property bool active: root.snapshot.activePlayer === index
+
+      width: playerStat.width + 20
+      height: playerStat.height + 12
+      radius: 4
+      color: active ? Theme.controlSelected : "transparent"
+      border.color: active ? Theme.goldBright : "#2f4239"
+
+      StatBlock {
+        id: playerStat
+        anchors.centerIn: parent
+        caption: "PLAYER " + (playerCard.index + 1) + (playerCard.active ? " · PAINTING" : "")
+        value: root.snapshot.playerScores[playerCard.index].toLocaleString(Qt.locale("en_US"), "f", 0)
+      }
     }
   }
 }
