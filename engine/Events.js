@@ -28,7 +28,10 @@ function feedback(previous, next) {
   var messages = []
   if (next.walls.length > previous.walls.length) {
     var points = Math.round((next.coverage - previous.coverage) * 10000)
-    messages.push({ tone: "gain", text: "+" + points + " · " + Math.round(next.coverage * 100) + "% claimed" })
+    if (points > 0)
+      messages.push({ tone: "gain", text: "+" + points + " · " + Math.round(next.coverage * 100) + "% claimed" })
+    else
+      messages.push({ tone: "info", text: "Wall built · nothing enclosed" })
   }
   if (next.lives < previous.lives && next.lives > 0) {
     messages.push({ tone: "loss", text: "Wall broken · " + livesLeftText(next.lives) })

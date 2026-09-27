@@ -176,4 +176,23 @@ TestCase {
     var standard = createTemporaryObject(viewComponent, this, { width: 1280, height: 800 })
     verify(!standard.wideLayout)
   }
+
+  // Holding Enter to start must not also build a wall when the key starts repeating.
+  function test_autoRepeatOnlyMovesTheCursor() {
+    var view = createTemporaryObject(viewComponent, this)
+    view.opened = true
+    verify(view.handleKey(Qt.Key_Return, 0, false))
+    compare(view.controller.snapshot.status, "running")
+
+    verify(view.handleKey(Qt.Key_Return, 0, true))
+    compare(view.controller.snapshot.growingWall, null)
+    verify(view.handleKey(Qt.Key_R, 0, true))
+    compare(view.controller.snapshot.orientation, "vertical")
+    verify(view.handleKey(Qt.Key_P, 0, true))
+    compare(view.controller.snapshot.status, "running")
+
+    var x = view.cursorX
+    verify(view.handleKey(Qt.Key_Right, 0, true))
+    verify(view.cursorX > x)
+  }
 }

@@ -62,4 +62,11 @@ TestCase {
     compare(Events.newlyClaimed(before, after).map(function(region) { return region.id }).join(","), "4")
     compare(Events.newlyClaimed(null, after).length, 0)
   }
+
+  function test_feedbackForWallThatEnclosesNothing() {
+    var after = snapshot({ walls: [{}], regions: [{ id: 2, claimed: false }, { id: 3, claimed: false }] })
+    var messages = Events.feedback(snapshot(), after)
+    compare(messages[0].text, "Wall built · nothing enclosed")
+    compare(messages[0].tone, "info")
+  }
 }

@@ -170,9 +170,11 @@ Item {
     else dismissRequested()
   }
 
-  // Returns true when the key was consumed.
-  function handleKey(key, modifiers) {
+  // Returns true when the key was consumed. Auto-repeat only moves the cursor: a held
+  // Enter that started the game must not also build a wall a quarter second later.
+  function handleKey(key, modifiers, isAutoRepeat) {
     var action = Input.action(key, modifiers)
+    if (isAutoRepeat && action !== "" && action !== "move") return true
     if (action === "escape") {
       handleEscape()
       return true
@@ -203,7 +205,7 @@ Item {
   }
 
   Keys.onPressed: function(event) {
-    event.accepted = root.handleKey(event.key, event.modifiers)
+    event.accepted = root.handleKey(event.key, event.modifiers, event.isAutoRepeat)
   }
 
   GameController {

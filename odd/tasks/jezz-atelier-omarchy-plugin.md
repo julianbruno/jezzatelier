@@ -169,6 +169,8 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
   - Performance fix found in review: board Repeaters were bound to snapshot arrays that are replaced every frame, recreating every sphere and region delegate at 60 fps. They now use counts, so delegates persist and only bindings update.
   - Focus: the overlay re-requests keyboard focus when the layer-shell window becomes visible.
   - Checks: `Totals: 62 passed, 0 failed`; Qt 6 lint only the `PanelWindow` baseline; offscreen captures at 2560×1080, 1920×1200, and 1280×800 reviewed.
+  - Live Omarchy run (package 4.0.4-1, 2560×1080): new UI, ultrawide side panel, lacquered spheres, captures, toasts, and horizontal cuts via `R` verified with `wtype` and `grim`; keyboard focus works in the layer-shell window. `omarchy plugin update` alone kept the old QML types in the running shell (`clearComponentCache()` does not drop referenced types); `omarchy-restart-shell` loaded the new code. README must tell users to restart the shell after updating.
+  - Live bug found and fixed (TDD, RED `62 passed, 2 failed` → `64 passed`): with Hyprland `repeat_delay` 250 ms, holding Enter to start the game auto-repeated into the game and built an unintended wall at the pointer. Auto-repeat now only moves the cursor. A wall that encloses nothing now reports "Wall built · nothing enclosed" instead of "+0 · 0% claimed".
 
 - [ ] **JZA-004 — Finish publication packaging and release evidence**
   - Route: delegated writer.
