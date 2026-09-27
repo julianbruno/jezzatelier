@@ -133,6 +133,15 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
   - Commit evidence: committed on `feat/jezz-atelier-overlay`.
 
 - [ ] **JZA-003 — Add collection media, audio, preferences, and scores**
+  - **JZA-003a — Bundled media collection** (implemented; JZA-003 remains open for integration, preferences, and scores).
+    - RED: Qt 6 runner before `Collection.js` existed: `Script .../engine/Collection.js unavailable`; `Totals: 31 passed, 1 failed, 0 skipped, 0 blacklisted`.
+    - GREEN: 10 artwork images decoded by Qt Quick and catalog behavior passed alongside existing tests: `Totals: 36 passed, 0 failed, 0 skipped, 0 blacklisted`.
+    - REFACTOR: replaced dynamic Image creation with a typed QML Image to remove lint warnings; media synthesis uses ffmpeg sine oscillators with deterministic envelope and peak normalization. Final checks recorded below.
+    - Commons API `LicenseShortName` (exact): `Public domain` for rubens-rainbow, lorrain-harbour, poelenburch-gods, rembrandt-night-watch, caravaggio-emmaus, vermeer-art-of-painting, vermeer-delft, rubens-garden-love, velazquez-meninas, rembrandt-storm; `CC0` for bach-01, bach-02, bach-03, bach-04, bach-06, bach-07, bach-18, bach-26, bach-36, bach-41. Project-original build, capture, life-lost, level-clear, game-over: `CC0 1.0 (project original)` (not Commons API assets). No substitutes.
+    - Sizes: artwork 3,127,117 bytes; music 12,000,815 bytes; sfx 156,778 bytes; total 15,284,710 bytes. `scripts/check-media.sh`: `Media inventory OK: 25 assets`; all listed files checked for existence, byte size, SHA-256, and Collection.js reference, and no unlisted files.
+    - Build observations: Commons temporarily returned HTTP 429; builder honored Retry-After and completed. Cached originals stay outside the repository. Bundle runtime is offline.
+    - Parent review RED/GREEN: catalog entries gained `sourceUrl` (test required a Commons file page for every entry: `4 passed, 1 failed` → `5 passed`). `engine/Collection.js` is now the single catalog source; `scripts/build-media.sh` reads it through Node instead of duplicating it on one 5,000-character line, rejects any catalog/Commons license mismatch, and strips tracking query strings from `originalUrl`. Re-running the builder reproduced all 25 assets byte-for-byte (identical aggregate SHA-256). Full suite: `Totals: 36 passed, 0 failed`.
+    - Commit evidence: committed on `feat/jezz-atelier-collection` as the media work unit.
   - Route: delegated writer.
   - Trigger: multi-file feature and asset integration.
   - Bundle ten appropriately sized public-domain artwork images and ten CC0 music tracks, with machine-readable attribution metadata.
