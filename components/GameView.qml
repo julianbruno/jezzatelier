@@ -2,6 +2,9 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import "../engine/Input.js" as Input
+import "../engine/Collection.js" as Collection
+import "../engine/Storage.js" as Storage
+import "../engine/Events.js" as Events
 
 // Overlay content: menu, HUD, board, and state dialogs. Kept free of PanelWindow so it
 // can be instantiated offscreen by tests.
@@ -10,40 +13,73 @@ Item {
 
   property alias controller: game
   property bool opened: false
-  property bool reducedMotion: false
+  property var preferences: Storage.defaultPreferences()
+  property var highScores: []
   property bool menuVisible: true
-  property string difficulty: "classic"
-  property int playerCount: 1
+  property int newHighScoreRank: 0
   property real cursorX: 8
   property real cursorY: 5
 
+  readonly property bool reducedMotion: preferences.reducedMotion
   readonly property string status: game.snapshot.status
   readonly property bool dialogVisible: menuVisible || status !== "running"
+  readonly property bool musicShouldPlay: opened && !menuVisible && status === "running"
+  readonly property var currentArtwork: Collection.artworkForWave(game.snapshot.wave,
+    preferences.randomArtwork, preferences.artworkId)
   // Reading `revision` re-evaluates the preview whenever the simulation publishes.
   readonly property var preview: game.revision >= 0 && !menuVisible
     ? game.previewAt(cursorX, cursorY)
     : null
 
-  readonly property var difficultyNotes: ({
-    relaxed: "A gentler pace, five lives and more time to plan.",
-    classic: "Three lives and a steady arcade challenge.",
-    expert: "Faster spheres, denser waves and a higher capture goal."
-  })
-
   signal dismissRequested()
+  signal persistenceRequested()
+  signal soundRequested(string name)
 
   focus: true
   onOpenedChanged: game.opened = opened
+  onPreferencesChanged: persistenceRequested()
+  onHighScoresChanged: persistenceRequested()
 
   function restoreFocus() {
     Qt.callLater(function() { root.forceActiveFocus() })
   }
 
   function begin() {
-    game.newGame(difficulty, playerCount)
+    newHighScoreRank = 0
+    game.newGame(preferences.difficulty, preferences.playerCount)
     menuVisible = false
     game.start()
     restoreFocus()
+  }
+
+  function updatePreference(key, value) {
+    var next = Object.assign({}, preferences)
+    next[key] = value
+    preferences = Storage.sanitizePreferences(next)
+  }
+
+  function browse(direction) {
+    var index = Collection.artworks.findIndex(function(entry) {
+      return entry.id === preferences.artworkId
+    })
+    var next = (index + direction + Collection.artworks.length) % Collection.artworks.length
+    updatePreference("artworkId", Collection.artworks[next].id)
+  }
+
+  function adjustSetting(key, direction) {
+    var increment = key === "brightness" ? 5 : 0.1
+    updatePreference(key, Math.round((preferences[key] + direction * increment) * 100) / 100)
+  }
+
+  function recordGameOver() {
+    var state = game.snapshot
+    var result = Storage.insertHighScore(highScores, {
+      score: state.score, wave: state.wave, difficulty: state.difficulty,
+      playerCount: state.playerCount, playerScores: state.playerScores,
+      date: new Date().toISOString().slice(0, 10)
+    })
+    highScores = result.scores
+    newHighScoreRank = result.rank
   }
 
   function showMenu() {
@@ -62,8 +98,14 @@ Item {
 
   function dialogMessage() {
     if (menuVisible) return "Claim empty space without touching the moving spheres."
-    if (status === "level-clear") return "Time & life bonus: " + game.snapshot.lastBonus
+    if (status === "level-clear") {
+      var next = Collection.artworkForWave(game.snapshot.wave + 1,
+        preferences.randomArtwork, preferences.artworkId)
+      return "Next: " + next.title + " — " + next.creator + " · " + next.date
+        + "\nTime & life bonus: " + game.snapshot.lastBonus
+    }
     if (status === "game-over") return "Final score: " + game.snapshot.score
+      + (newHighScoreRank ? "\nNew high score — #" + newHighScoreRank : "")
     if (game.snapshot.playerCount === 2)
       return "Player " + (game.snapshot.activePlayer + 1) + " is painting now."
     return "Take your time."
@@ -126,6 +168,14 @@ Item {
 
   GameController {
     id: game
+    property var previousSnapshot: null
+    onSnapshotChanged: {
+      var events = Events.soundEvents(previousSnapshot, snapshot)
+      if (root.opened) events.forEach(function(name) { root.soundRequested(name) })
+      if (previousSnapshot && previousSnapshot.status !== "game-over"
+          && snapshot.status === "game-over") root.recordGameOver()
+      previousSnapshot = snapshot
+    }
   }
 
   Rectangle {
@@ -157,6 +207,9 @@ Item {
       Layout.fillHeight: true
       visible: !root.menuVisible
       snapshot: game.snapshot
+      randomArtwork: root.preferences.randomArtwork
+      artworkId: root.preferences.artworkId
+      brightness: root.preferences.brightness
       preview: root.preview
       cursorX: root.cursorX
       cursorY: root.cursorY
@@ -183,6 +236,18 @@ Item {
     Text {
       Layout.fillWidth: true
       visible: !root.menuVisible
+      horizontalAlignment: Text.AlignHCenter
+      elide: Text.ElideRight
+      text: "Now showing: " + root.currentArtwork.title + " — " + root.currentArtwork.creator
+        + " (" + root.currentArtwork.date + ")"
+      color: "#e7cc92"
+      font.family: "serif"
+      font.pixelSize: 15
+    }
+
+    Text {
+      Layout.fillWidth: true
+      visible: !root.menuVisible
       text: "ARROWS MOVE · SHIFT + ARROWS FAST · SPACE / ENTER PLACE · R OR RIGHT CLICK ROTATE · P PAUSE · ESC PAUSE / CLOSE"
       wrapMode: Text.Wrap
       horizontalAlignment: Text.AlignHCenter
@@ -193,8 +258,8 @@ Item {
 
   Rectangle {
     anchors.centerIn: parent
-    width: Math.min(parent.width - 32, 480)
-    implicitHeight: content.implicitHeight + 40
+    width: Math.min(parent.width - 32, 600)
+    height: Math.min(parent.height - 32, content.implicitHeight + 40)
     visible: root.dialogVisible
     color: "#1a2b24"
     border.color: "#c8ad72"
@@ -204,6 +269,8 @@ Item {
       id: content
       anchors.centerIn: parent
       width: parent.width - 40
+      height: Math.min(implicitHeight, parent.height - 32)
+      clip: true
       spacing: 14
 
       Text {
@@ -224,40 +291,15 @@ Item {
         color: "#e7cc92"
       }
 
-      Column {
+      MenuPanel {
         visible: root.menuVisible
         width: parent.width
-        spacing: 8
-
-        Text {
-          text: "DIFFICULTY"
-          color: "#c8ad72"
-          font.pixelSize: 12
-        }
-
-        Repeater {
-          model: ["relaxed", "classic", "expert"]
-
-          AtelierButton {
-            required property string modelData
-            width: content.width
-            label: modelData.toUpperCase() + (root.difficulty === modelData ? "  ●" : "")
-            onActivated: root.difficulty = modelData
-          }
-        }
-
-        Text {
-          width: parent.width
-          wrapMode: Text.Wrap
-          text: root.difficultyNotes[root.difficulty]
-          color: "#f5eedb"
-        }
-
-        AtelierButton {
-          width: content.width
-          label: root.playerCount === 1 ? "1 PLAYER" : "2 PLAYERS · HOT-SEAT"
-          onActivated: root.playerCount = root.playerCount === 1 ? 2 : 1
-        }
+        preferences: root.preferences
+        highScores: root.highScores
+        artwork: root.currentArtwork
+        onPreferenceRequested: function(key, value) { root.updatePreference(key, value) }
+        onBrowseRequested: function(direction) { root.browse(direction) }
+        onAdjustRequested: function(key, direction) { root.adjustSetting(key, direction) }
       }
 
       AtelierButton {

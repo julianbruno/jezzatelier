@@ -132,7 +132,7 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
   - Authored lines: 870 (overlay entry, components, input/layout helpers, and their tests).
   - Commit evidence: committed on `feat/jezz-atelier-overlay`.
 
-- [ ] **JZA-003 — Add collection media, audio, preferences, and scores**
+- [x] **JZA-003 — Add collection media, audio, preferences, and scores**
   - **JZA-003a — Bundled media collection** (implemented; JZA-003 remains open for integration, preferences, and scores).
     - RED: Qt 6 runner before `Collection.js` existed: `Script .../engine/Collection.js unavailable`; `Totals: 31 passed, 1 failed, 0 skipped, 0 blacklisted`.
     - GREEN: 10 artwork images decoded by Qt Quick and catalog behavior passed alongside existing tests: `Totals: 36 passed, 0 failed, 0 skipped, 0 blacklisted`.
@@ -142,6 +142,16 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
     - Build observations: Commons temporarily returned HTTP 429; builder honored Retry-After and completed. Cached originals stay outside the repository. Bundle runtime is offline.
     - Parent review RED/GREEN: catalog entries gained `sourceUrl` (test required a Commons file page for every entry: `4 passed, 1 failed` → `5 passed`). `engine/Collection.js` is now the single catalog source; `scripts/build-media.sh` reads it through Node instead of duplicating it on one 5,000-character line, rejects any catalog/Commons license mismatch, and strips tracking query strings from `originalUrl`. Re-running the builder reproduced all 25 assets byte-for-byte (identical aggregate SHA-256). Full suite: `Totals: 36 passed, 0 failed`.
     - Commit evidence: committed on `feat/jezz-atelier-collection` as the media work unit.
+  - **JZA-003b — Gallery, audio, preferences, and high scores**
+    - RED: Qt 6 runner with new pure-logic tests reported missing `engine/Storage.js` and `engine/Events.js`: `Totals: 36 passed, 2 failed`; integration tests before UI changes reported missing board artwork/preferences: `Totals: 44 passed, 2 failed`.
+    - GREEN: pure logic and view integration pass with existing tests: `Totals: 46 passed, 0 failed, 0 skipped, 0 blacklisted, 264ms`.
+    - REFACTOR: removed a QQuickItem signal-name collision, qualified setting-row bindings, and aligned claimed image fragments with the full board. Tests remained green (46 passed).
+    - Parent review RED: board veil and human-readable menu labels were asserted first (`MenuPanel is not a type`; veil at default brightness was 0.15).
+    - Parent review GREEN/REFACTOR: extracted `components/MenuPanel.qml` from `GameView.qml` (486 → ~330 lines, fixed mis-indented Play section); tabs show the selected section; settings read `Brightness 82%`, `Music 60%`, `Effects 80%`; gallery mode reads `MODE · TOUR BY WAVE`/`MODE · FIXED PAINTING` with a position counter, and browse buttons sit above the preview so they are never clipped; the open field veil now scales 0.30–0.75 with brightness (0.45 at the default) so claimed regions visibly uncover the painting, with the gold board frame restored; the board shows a "Now showing" caption. `AudioDirector` preloads one `SoundEffect` per sound through an `Instantiator` (no hot source swapping or cut-offs) and receives events through a typed `Connections` target; `Storage.js` was reformatted into named validators without the Node `require` workaround. Final: `Totals: 49 passed, 0 failed, 0 skipped, 0 blacklisted`; Qt 6 lint reports only the known `PanelWindow` baseline warning.
+    - Live Quickshell evidence (ephemeral `quickshell -p` harness, temporary `XDG_STATE_HOME`): missing state file → defaults and parent directory created on save; written preferences and high score read back on the next run; corrupt JSON with out-of-range values → defaults without errors. `AudioDirector` loaded and played a sound effect and music under Qt 6 QtMultimedia.
+    - Checks: `omarchy plugin validate .` exit 0; `scripts/check-media.sh` → `Media inventory OK: 25 assets`.
+    - Authored lines for this unit: about 600 across new files plus 262 insertions / 63 deletions in modified files.
+    - Remaining live-shell checks (JZA-004): Wayland keyboard focus inside the layer-shell window, audible output through the Omarchy session, and install/enable/summon/hide/remove lifecycle.
   - Route: delegated writer.
   - Trigger: multi-file feature and asset integration.
   - Bundle ten appropriately sized public-domain artwork images and ten CC0 music tracks, with machine-readable attribution metadata.
@@ -199,4 +209,4 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
 
 ## Next step
 
-Create `feat/jezz-atelier-collection` from the overlay branch and run JZA-003 (artwork, audio, preferences, high scores). Media sourcing needs verified public-domain/CC0 provenance for every asset.
+Create `feat/jezz-atelier-release` from the collection branch and run JZA-004: README, license, third-party notices, changelog, contribution and security notes, validation scripts, marketplace preview, and an isolated install/enable/summon/hide/disable/remove smoke check.

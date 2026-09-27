@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import "../engine/Layout.js" as Layout
+import "../engine/Collection.js" as Collection
 
 // Renders one engine snapshot inside a letterboxed 16:10 field and reports pointer input
 // in world coordinates.
@@ -9,8 +10,17 @@ Item {
 
   property var snapshot: null
   property var preview: null
+  property bool randomArtwork: true
+  property string artworkId: Collection.artworks[0].id
+  property int brightness: 82
   property real cursorX: 8
   property real cursorY: 5
+
+  readonly property var artwork: Collection.artworkForWave(snapshot ? snapshot.wave : 1, randomArtwork, artworkId)
+  readonly property url artworkSource: Qt.resolvedUrl("../" + artwork.file)
+  // Unclaimed field stays veiled so claiming visibly uncovers the painting;
+  // brightness 100 keeps a light veil, 45 a heavy one.
+  readonly property real veilOpacity: 0.3 + (100 - brightness) / 55 * 0.45
 
   readonly property var box: Layout.fit(width, height)
   readonly property real unit: box.width / 16
@@ -33,23 +43,33 @@ Item {
       && pixelY >= box.y && pixelY <= box.y + box.height
   }
 
-  Rectangle {
+  Item {
     x: root.box.x
     y: root.box.y
     width: root.box.width
     height: root.box.height
-    border.color: "#c8ad72"
-    border.width: Math.max(2, root.unit * 0.04)
-    gradient: Gradient {
-      GradientStop { position: 0; color: "#253d36" }
-      GradientStop { position: 1; color: "#111f1c" }
+    clip: true
+
+    Image {
+      anchors.fill: parent
+      source: root.artworkSource
+      fillMode: Image.PreserveAspectCrop
+      asynchronous: true
+      sourceSize.width: Math.ceil(parent.width)
+      sourceSize.height: Math.ceil(parent.height)
+    }
+
+    Rectangle {
+      anchors.fill: parent
+      color: "#101b17"
+      opacity: root.veilOpacity
     }
   }
 
   Repeater {
     model: root.snapshot ? root.snapshot.regions : []
 
-    Rectangle {
+    Item {
       required property var modelData
       readonly property var topLeft: Layout.toPixel(root.box, modelData.minX, modelData.minY)
       readonly property var bottomRight: Layout.toPixel(root.box, modelData.maxX, modelData.maxY)
@@ -59,10 +79,35 @@ Item {
       y: topLeft.y
       width: bottomRight.x - topLeft.x
       height: bottomRight.y - topLeft.y
-      color: "#9b8060"
-      opacity: 0.7
-      border.color: "#d7b979"
+      clip: true
+      Image {
+        x: root.box.x - parent.x
+        y: root.box.y - parent.y
+        width: root.box.width
+        height: root.box.height
+        source: root.artworkSource
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        sourceSize.width: Math.ceil(root.box.width)
+        sourceSize.height: Math.ceil(root.box.height)
+      }
+      Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+        border.color: "#d7b979"
+        border.width: Math.max(1, root.unit * 0.025)
+      }
     }
+  }
+
+  Rectangle {
+    x: root.box.x
+    y: root.box.y
+    width: root.box.width
+    height: root.box.height
+    color: "transparent"
+    border.color: "#c8ad72"
+    border.width: Math.max(2, root.unit * 0.04)
   }
 
   Repeater {

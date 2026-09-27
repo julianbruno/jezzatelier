@@ -7,6 +7,7 @@ TestCase {
   name: "View"
   Component { id: boardComponent; GameBoard { width: 640; height: 400 } }
   Component { id: hudComponent; GameHud {} }
+  Component { id: menuComponent; MenuPanel { width: 560 } }
   Component { id: viewComponent; GameView { width: 1280; height: 720 } }
   function test_viewOffscreen() {
     var view = createTemporaryObject(viewComponent, this)
@@ -42,6 +43,38 @@ TestCase {
     compare(view.controller.snapshot.status, "running")
   }
 
+  function test_preferencesAndScoreAndAudio() {
+    var view = createTemporaryObject(viewComponent, this)
+    view.preferences = { difficulty: "expert", playerCount: 2, randomArtwork: false,
+      artworkId: "vermeer-delft", brightness: 60, musicVolume: 0.4,
+      sfxVolume: 0.2, reducedMotion: true }
+    view.opened = true
+    view.begin()
+    compare(view.controller.snapshot.difficulty, "expert")
+    compare(view.controller.snapshot.playerCount, 2)
+    compare(view.currentArtwork.id, "vermeer-delft")
+    verify(view.musicShouldPlay)
+    view.controller.togglePause()
+    verify(!view.musicShouldPlay)
+    view.controller.togglePause()
+    view.controller.gameState.status = "game-over"
+    view.controller.publish()
+    compare(view.newHighScoreRank, 1)
+    compare(view.highScores.length, 1)
+    verify(!view.musicShouldPlay)
+    view.opened = false
+    verify(!view.musicShouldPlay)
+  }
+
+  function test_boardArtworkSelection() {
+    var board = createTemporaryObject(boardComponent, this)
+    board.snapshot = { wave: 2, regions: [], walls: [], spheres: [], growingWall: null }
+    compare(board.artwork.id, "lorrain-harbour")
+    board.randomArtwork = false
+    board.artworkId = "vermeer-delft"
+    compare(board.artwork.id, "vermeer-delft")
+  }
+
   function test_previewFollowsGameState() {
     var view = createTemporaryObject(viewComponent, this)
     view.opened = true
@@ -53,5 +86,35 @@ TestCase {
 
     verify(view.controller.placeAt(8, 5))
     verify(!view.preview.valid)
+  }
+
+  function test_claimedRegionsStandOutFromVeiledField() {
+    var veils = [100, 82, 45].map(function(brightness) {
+      var board = createTemporaryObject(boardComponent, this, { brightness: brightness })
+      return board.veilOpacity
+    }, this)
+    verify(veils[0] >= 0.25, "veil at 100: " + veils[0])
+    verify(veils[1] >= 0.4, "veil at default 82: " + veils[1])
+    verify(veils[2] <= 0.8, "veil at 45: " + veils[2])
+    verify(veils[0] < veils[1] && veils[1] < veils[2])
+  }
+
+  function test_menuUsesHumanLabels() {
+    var menu = createTemporaryObject(menuComponent, this)
+    compare(menu.settingLabel("brightness", 82), "Brightness 82%")
+    compare(menu.settingLabel("musicVolume", 0.6), "Music 60%")
+    compare(menu.settingLabel("sfxVolume", 0.8), "Effects 80%")
+    compare(menu.galleryModeLabel(true), "MODE · TOUR BY WAVE")
+    compare(menu.galleryModeLabel(false), "MODE · FIXED PAINTING")
+  }
+
+  // Loads the optional audio director exactly as JezzAtelier.qml does, without playing.
+  function test_audioDirectorLoadsWhenQtMultimediaIsPresent() {
+    var component = Qt.createComponent(Qt.resolvedUrl("../components/AudioDirector.qml"))
+    compare(component.status, Component.Ready, component.errorString())
+    var audio = component.createObject(this, { shouldPlay: false }) as AudioDirector
+    verify(audio !== null)
+    compare(audio.trackSource.toString().slice(-12), "bach-01.opus")
+    audio.destroy()
   }
 }
