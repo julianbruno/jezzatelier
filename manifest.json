@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.julianbruno.jezz-atelier",
   "name": "Jezz Atelier",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Julian Bruno",
   "description": "An offline single-player JezzBall-inspired game: cut around bouncing spheres to reveal public-domain paintings",
   "kinds": ["overlay"],

@@ -34,7 +34,7 @@ To list Jezz Atelier with its own icon under **Apps** in the Omarchy menu, run t
 ~/.config/omarchy/plugins/io.github.julianbruno.jezz-atelier/scripts/install-launcher.sh
 ```
 
-It writes one desktop entry and one icon under `~/.local/share`; `install-launcher.sh --remove` takes them away. Omarchy plugins have no install hooks, so this step is opt-in.
+It creates a desktop entry, icon, and ownership sidecars under `${XDG_DATA_HOME:-$HOME/.local/share}`. An identical rerun is safe; `install-launcher.sh --remove` removes only entries whose identity matches their sidecars and whose exact bytes match the current plugin desktop template or bundled icon. Existing entries from older versions have no ownership evidence: back them up and inspect/remove them manually before installing this version. Changed icons or entries require verified removal and reinstallation. The script refuses conflicts, symlinks, hard links, and modified entries rather than replacing or deleting them. Newline and carriage return characters in the XDG data path are refused. Its shell checks assume stable user-controlled directories, not hostile concurrent path changes; a forged sidecar plus exact plugin bytes is not distinguishable from an owned file. Omarchy plugins have no install hooks, so this step is opt-in.
 
 **Optional:** add a shortcut to `~/.config/hypr/bindings.lua` (choose an unused key; `SUPER + J` is taken by default):
 

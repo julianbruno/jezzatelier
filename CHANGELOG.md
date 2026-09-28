@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] - 2026-09-27
+
+### Fixed
+
+- Optional launcher installation refuses collisions and symlinked paths; removal deletes only verified owned files.
+- Added isolated XDG-root regression tests for launcher install, refusal, and removal.
+
+Legacy launcher files without ownership sidecars require manual migration; the installer will not overwrite or remove them automatically.
+
 ## [1.0.0] - 2026-09-27
 
 ### Added

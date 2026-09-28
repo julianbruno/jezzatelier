@@ -3,6 +3,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 qt=/usr/lib/qt6/bin
 shell_path="${OMARCHY_PATH:-/usr/share/omarchy}/shell"
+printf '\n== Launcher safety tests ==\n'
+bash tests/test-install-launcher.sh
 printf '\n== Qt 6 tests ==\n'
 QT_QPA_PLATFORM=offscreen "$qt/qmltestrunner" -input tests -import . -import "$shell_path"
 printf '\n== Qt 6 QML lint ==\n'
