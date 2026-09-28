@@ -8,14 +8,21 @@ from pathlib import Path
 
 entries = json.loads(Path('assets/media.json').read_text())
 lines = ['# Third-party media notices', '', 'Generated from `assets/media.json` by `scripts/generate-notices.sh`.',
-         'The MIT license covers original code, not the underlying third-party media.', '']
+         'MIT covers original code and associated documentation, not bundled media. Project-original sound effects are dedicated under CC0 1.0; third-party music recordings are CC0, and artworks are public domain.', '']
 for kind, heading in [('artwork', 'Artworks'), ('music', 'Music'), ('sfx', 'Project-original sound effects')]:
     lines += ['## ' + heading, '']
     for entry in entries:
         if entry['kind'] != kind:
             continue
-        lines += ['### ' + entry['title'], '',
-                  f"- Creator: {entry['creator']}", f"- Date: {entry.get('date', '2026 (project original)')}",
+        lines += ['### ' + entry['title'], '']
+        if kind == 'music' and ' — ' in entry['creator']:
+            composer, performer = entry['creator'].split(' — ', 1)
+            lines += [f'- Composer: {composer}', f'- Performer: {performer}']
+        else:
+            lines += [f"- Creator: {entry['creator']}"]
+        fallback_date = {'artwork': 'Date unknown', 'music': 'Recording date unknown',
+                         'sfx': '2026 (project original)'}[kind]
+        lines += [f"- Date: {entry.get('date', fallback_date)}",
                   f"- License: {entry['license']}"]
         if kind == 'sfx':
             lines += ['- Source: project original (no Commons source page)',

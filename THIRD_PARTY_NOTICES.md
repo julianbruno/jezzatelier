@@ -1,7 +1,7 @@
 # Third-party media notices
 
 Generated from `assets/media.json` by `scripts/generate-notices.sh`.
-The MIT license covers original code, not the underlying third-party media.
+MIT covers original code and associated documentation, not bundled media. Project-original sound effects are dedicated under CC0 1.0; third-party music recordings are CC0, and artworks are public domain.
 
 ## Artworks
 
@@ -99,8 +99,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Prelude No. 1 in C major, BWV 846
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_01_Prelude_No._1_in_C_major,_BWV_846.ogg
 - Changes: re-encoded for the bundle
@@ -108,8 +109,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Fugue No. 1 in C major, BWV 846
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_02_Fugue_No._1_in_C_major,_BWV_846.ogg
 - Changes: re-encoded for the bundle
@@ -117,8 +119,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Prelude No. 2 in C minor, BWV 847
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_03_Prelude_No._2_in_C_minor,_BWV_847.ogg
 - Changes: re-encoded for the bundle
@@ -126,8 +129,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Fugue No. 2 in C minor, BWV 847
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_04_Fugue_No._2_in_C_minor,_BWV_847.ogg
 - Changes: re-encoded for the bundle
@@ -135,8 +139,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Fugue No. 3 in C-sharp major, BWV 848
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_06_Fugue_No._3_in_C-sharp_major,_BWV_848.ogg
 - Changes: re-encoded for the bundle
@@ -144,8 +149,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Prelude No. 4 in C-sharp minor, BWV 849
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_07_Prelude_No._4_in_C-sharp_minor,_BWV_849.ogg
 - Changes: re-encoded for the bundle
@@ -153,8 +159,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Fugue No. 9 in E major, BWV 854
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_18_Fugue_No._9_in_E_major,_BWV_854.ogg
 - Changes: re-encoded for the bundle
@@ -162,8 +169,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Fugue No. 13 in F-sharp major, BWV 858
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_26_Fugue_No._13_in_F-sharp_major,_BWV_858.ogg
 - Changes: re-encoded for the bundle
@@ -171,8 +179,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Fugue No. 18 in G-sharp minor, BWV 863
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_36_Fugue_No._18_in_G-sharp_minor,_BWV_863.ogg
 - Changes: re-encoded for the bundle
@@ -180,8 +189,9 @@ The MIT license covers original code, not the underlying third-party media.
 
 ### Prelude No. 21 in B-flat major, BWV 866
 
-- Creator: Johann Sebastian Bach — Kimiko Ishizaka
-- Date: 2026 (project original)
+- Composer: Johann Sebastian Bach
+- Performer: Kimiko Ishizaka
+- Date: Recording date unknown
 - License: CC0
 - Commons source page: https://commons.wikimedia.org/wiki/File:Kimiko_Ishizaka_-_Bach_-_Well-Tempered_Clavier,_Book_1_-_41_Prelude_No._21_in_B-flat_major,_BWV_866.ogg
 - Changes: re-encoded for the bundle

@@ -2,7 +2,7 @@
 
 ![Jezz Atelier game preview](preview.png)
 
-Jezz Atelier is a single-player, offline JezzBall-inspired game for Omarchy. Draw cuts around bouncing spheres to reveal public-domain paintings while listening to CC0 recordings.
+Jezz Atelier is a single-player, offline JezzBall-inspired game for Omarchy. Settle into an ASMR-inspired, relaxing rhythm with Bach piano recordings and soft collision sounds as you draw cuts around bouncing spheres. Blurry, noisy paintings come into focus as you enclose regions; Relaxed mode offers gentler pacing.
 
 ## Features
 
@@ -10,7 +10,7 @@ Jezz Atelier is a single-player, offline JezzBall-inspired game for Omarchy. Dra
 - Paintings start blurred and grainy; claimed regions sharpen over 2.6 seconds (instantly with reduced motion).
 - Vertical and horizontal cuts, with an on-board cursor that shows the current orientation.
 - Lacquered spheres that bounce off the walls and off each other, with impact sounds.
-- Ten public-domain paintings, ten CC0 music recordings, original sound effects, gallery browsing, brightness and volume settings.
+- Ten public-domain paintings, ten classical piano performances of Bach by Kimiko Ishizaka, original sound effects, a painting gallery, and brightness and volume settings.
 - Local high scores and preferences; keyboard-only or pointer-only play; pause and reduced-motion option.
 - Layout that adapts to ultrawide screens by moving the HUD to a side panel.
 
@@ -81,4 +81,11 @@ Designed for the Omarchy overlay plugin contract; tested against Omarchy package
 
 ## Credits and license
 
-Original code and project-original sound effects: Julian Bruno, MIT ([LICENSE](LICENSE)). Paintings and recordings retain their own public-domain/CC0 status; full titles, creators, sources, and transformations are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Jezz Atelier is inspired by [JezzBall](https://en.wikipedia.org/wiki/JezzBall), the classic territory-claiming game. This is an independent interpretation, not an official JezzBall release.
+
+Original code and associated documentation: Julian Bruno, MIT ([LICENSE](LICENSE)). Bundled media is outside MIT: project-made sound effects are dedicated under CC0 1.0, third-party piano recordings are CC0, and paintings are public domain. Full credits, source links, and license details are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+<p align="center">
+  <a href="https://github.com/Gentleman-Programming/gentle-ai"><img src="https://github.com/Gentleman-Programming/gentle-ai/raw/main/docs/assets/brand/rose.png" alt="Gentle-AI rose" width="48"></a><br>
+  JezzAtelier is crafted with Gentle-AI
+</p>

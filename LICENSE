@@ -20,5 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This license covers original code and project-original sound effects. See
-THIRD_PARTY_NOTICES.md for the separate provenance and rights of bundled media.
+This MIT license covers original code and associated documentation, not bundled
+media. Project-original sound effects are dedicated under CC0 1.0; third-party
+music recordings are CC0, and artworks are public domain. See
+THIRD_PARTY_NOTICES.md for bundled media provenance and rights.

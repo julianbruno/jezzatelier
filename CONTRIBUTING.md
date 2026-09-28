@@ -10,6 +10,6 @@ For behavior changes, write a failing test first (strict TDD), observe RED, impl
 
 ## Media
 
-Only public-domain or CC0 sources are accepted. Update `engine/Collection.js` and use `scripts/build-media.sh` to verify Commons licenses and rebuild the bundle; this developer-only operation uses network access, Node, Python, ImageMagick and ffmpeg. Run `scripts/generate-notices.sh` and `scripts/validate.sh` afterward. Never add media without title, creator, date, exact license, and source page.
+Only public-domain or CC0 sources are accepted. Update `engine/Collection.js` and use `scripts/build-media.sh` to verify Commons licenses and rebuild the bundle; this developer-only operation uses network access, Node, Python, ImageMagick and ffmpeg. Run `scripts/generate-notices.sh` and `scripts/validate.sh` afterward. Never add media without title, creator, exact license, source page, and either a verified date or an explicit unknown date. Do not infer a recording date from Commons upload or file dates.
 
 Do not edit packaged Omarchy files or run the overlay in a second Quickshell process. See [SECURITY.md](SECURITY.md) before proposing new runtime dependencies.
