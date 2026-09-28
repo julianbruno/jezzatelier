@@ -8,9 +8,10 @@ Submit through the [official issue form](https://plugins.omarchy.org/publish.htm
 - Plugin name: Jezz Atelier
 - Plugin ID: `io.github.julianbruno.jezz-atelier`
 - Version: `0.1.0`
-- Description: A native JezzBall-inspired kinetic gallery game for Omarchy with offline local play.
+- Description: A single-player, fully offline JezzBall-inspired game for Omarchy: close off space around bouncing spheres to bring a blurred public-domain painting into focus.
 - Preview: `preview.png` in repository root
 - Install: `omarchy plugin add https://github.com/julianbruno/omarchy-jezz-atelier.git --enable`
+- Optional app launcher entry: `~/.config/omarchy/plugins/io.github.julianbruno.jezz-atelier/scripts/install-launcher.sh`
 - Remove: `omarchy plugin remove io.github.julianbruno.jezz-atelier`
 - License: MIT for original code; separate public-domain/CC0 media notices in `THIRD_PARTY_NOTICES.md`.
 
