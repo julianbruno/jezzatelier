@@ -288,7 +288,7 @@ Column {
           wrapMode: Text.Wrap
           color: "#f5eedb"
           font.pixelSize: 12
-          text: "Sound effects (build, capture, life lost, wave clear, game over): original works by the project, CC0 1.0."
+          text: "Sound effects (build, capture, life lost, wave clear, game over, rail bounce, sphere clack): original works by the project, CC0 1.0."
         }
       }
     }
