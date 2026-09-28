@@ -69,4 +69,33 @@ TestCase {
     compare(messages[0].text, "Wall built · nothing enclosed")
     compare(messages[0].tone, "info")
   }
+
+  function test_impactSoundsKeepTheStrongestHitOfEachKind() {
+    var sounds = Events.impactSounds(snapshot({ impacts: [
+      { kind: "rail", speed: 1 }, { kind: "sphere", speed: 3 }, { kind: "rail", speed: 2.5 }
+    ] }))
+    compare(sounds.length, 2)
+    compare(sounds[0].name, "bounce")
+    near(sounds[0].gain, 0.5)
+    compare(sounds[1].name, "clack")
+    near(sounds[1].gain, 0.375)
+  }
+
+  function test_impactSoundGainIsBounded() {
+    var sounds = Events.impactSounds(snapshot({ impacts: [
+      { kind: "rail", speed: 50 }, { kind: "sphere", speed: 0.01 }
+    ] }))
+    near(sounds[0].gain, 1)
+    near(sounds[1].gain, 0.2)
+  }
+
+  function test_impactsAreSilentUnlessRunning() {
+    compare(Events.impactSounds(null).length, 0)
+    compare(Events.impactSounds(snapshot()).length, 0)
+    compare(Events.impactSounds(snapshot({ status: "paused", impacts: [{ kind: "rail", speed: 2 }] })).length, 0)
+  }
+
+  function near(actual, expected) {
+    verify(Math.abs(actual - expected) < 1e-9, actual + " != " + expected)
+  }
 }

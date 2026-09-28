@@ -52,6 +52,14 @@ SFX_NOTES = {
     "life-lost": [220, 164],
     "level-clear": [523, 659, 784, 1047],
     "game-over": [330, 262, 196],
+    "bounce": [784, 1176],
+    "clack": [1568, 2352, 3528],
+}
+# Collision sounds are short, struck chords: every partial starts at once and dies fast.
+# (stagger s, decay s, length s); the default is the melodic cue shape.
+SFX_SHAPES = {
+    "bounce": (0, 0.022, 0.12),
+    "clack": (0, 0.014, 0.08),
 }
 SAMPLE_RATE = 44100
 NOTE_STAGGER = 0.075
@@ -123,31 +131,32 @@ def encode_track(original, output, title):
     ], check=True)
 
 
-def sine(frequency):
+def sine(frequency, length):
     raw = subprocess.check_output([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-f", "lavfi",
-        "-i", f"sine=frequency={frequency}:sample_rate={SAMPLE_RATE}:duration={NOTE_LENGTH}",
+        "-i", f"sine=frequency={frequency}:sample_rate={SAMPLE_RATE}:duration={length}",
         "-f", "s16le", "-acodec", "pcm_s16le", "-",
     ])
     return [value[0] / 32768 for value in struct.iter_unpack("<h", raw)]
 
 
-def envelope(age):
-    # 12 ms attack, exponential decay, forced to silence at the end of the note.
-    return min(1, age / 0.012) * math.exp(-age / 0.055) * (1 - age / NOTE_LENGTH)
+def envelope(age, attack, decay, length):
+    # Linear attack, exponential decay, forced to silence at the end of the note.
+    return min(1, age / attack) * math.exp(-age / decay) * (1 - age / length)
 
 
-def synthesize_sfx(notes, output):
-    oscillators = [sine(frequency) for frequency in notes]
-    duration = (len(notes) - 1) * NOTE_STAGGER + NOTE_LENGTH
+def synthesize_sfx(notes, output, stagger=NOTE_STAGGER, decay=0.055, length=NOTE_LENGTH):
+    attack = min(0.012, decay / 4)
+    oscillators = [sine(frequency, length) for frequency in notes]
+    duration = (len(notes) - 1) * stagger + length
     samples = []
     for n in range(math.ceil(duration * SAMPLE_RATE)):
         amplitude = 0.0
         for i, oscillator in enumerate(oscillators):
-            age = n / SAMPLE_RATE - i * NOTE_STAGGER
+            age = n / SAMPLE_RATE - i * stagger
             index = round(age * SAMPLE_RATE)
             if 0 <= index < len(oscillator):
-                amplitude += oscillator[index] * envelope(age)
+                amplitude += oscillator[index] * envelope(age, attack, decay, length)
         samples.append(amplitude)
 
     peak = max(abs(sample) for sample in samples)
@@ -186,7 +195,7 @@ for kind, entries in (("artwork", CATALOG["artworks"]), ("music", CATALOG["track
 
 for name, file in CATALOG["sfx"].items():
     output = pathlib.Path(file)
-    synthesize_sfx(SFX_NOTES[name], output)
+    synthesize_sfx(SFX_NOTES[name], output, *SFX_SHAPES.get(name, ()))
     entry = {"id": name, "title": name.replace("-", " ").title(), "creator": "Jezz Atelier"}
     results.append(record(entry, "sfx", output, license="CC0 1.0 (project original)"))
 

@@ -10,7 +10,7 @@ TestCase {
   function test_catalog() {
     compare(Collection.artworks.length, 10)
     compare(Collection.tracks.length, 10)
-    compare(Object.keys(Collection.sfx).length, 5)
+    compare(Object.keys(Collection.sfx).length, 7)
     var ids = {}
     var entries = Collection.artworks.concat(Collection.tracks)
     for (var i = 0; i < entries.length; i++) {
@@ -36,6 +36,8 @@ TestCase {
     compare(Collection.artworkForWave(3, false, "unknown").id, Collection.artworks[0].id)
     compare(Collection.artworkById("unknown"), null)
     verify(Collection.sfxFile("build").endsWith("build.wav"))
+    verify(Collection.sfxFile("bounce").endsWith("bounce.wav"))
+    verify(Collection.sfxFile("clack").endsWith("clack.wav"))
   }
 
   function test_inventoryImages() {

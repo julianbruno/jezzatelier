@@ -195,4 +195,20 @@ TestCase {
     verify(view.handleKey(Qt.Key_Right, 0, true))
     verify(view.cursorX > x)
   }
+
+  function test_impactsRequestCollisionSounds() {
+    var view = createTemporaryObject(viewComponent, this)
+    var spy = createTemporaryObject(signalSpyComponent, this, { target: view, signalName: "impactRequested" })
+    view.opened = true
+    view.begin()
+    var previous = view.controller.snapshot
+    var next = JSON.parse(JSON.stringify(previous))
+    next.impacts = [{ kind: "sphere", speed: 4, x: 1, y: 1 }]
+    view.reactToSnapshot(previous, next)
+    compare(spy.count, 1)
+    compare(spy.signalArguments[0][0], "clack")
+    compare(spy.signalArguments[0][1], 0.5)
+  }
+
+  Component { id: signalSpyComponent; SignalSpy {} }
 }

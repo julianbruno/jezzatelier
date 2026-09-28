@@ -16,6 +16,30 @@ function soundEvents(previous, next) {
   return events
 }
 
+// Collision sounds for one frame: the strongest rail hit and the strongest sphere hit,
+// each with a gain that grows with impact speed. Rails are struck at up to one sphere
+// speed, pairs close at up to twice that, hence the different full-scale speeds.
+var IMPACT_SOUNDS = {
+  rail: { name: "bounce", fullSpeed: 5 },
+  sphere: { name: "clack", fullSpeed: 8 }
+}
+var MIN_IMPACT_GAIN = 0.2
+
+function impactSounds(snapshot) {
+  if (!snapshot || snapshot.status !== "running") return []
+
+  var strongest = {}
+  ;(snapshot.impacts || []).forEach(function(impact) {
+    if (IMPACT_SOUNDS[impact.kind] && (!strongest[impact.kind] || impact.speed > strongest[impact.kind]))
+      strongest[impact.kind] = impact.speed
+  })
+  return ["rail", "sphere"].filter(function(kind) { return strongest[kind] }).map(function(kind) {
+    var sound = IMPACT_SOUNDS[kind]
+    var gain = Math.min(1, Math.max(MIN_IMPACT_GAIN, strongest[kind] / sound.fullSpeed))
+    return { name: sound.name, gain: gain }
+  })
+}
+
 function livesLeftText(lives) {
   if (lives === 1) return "last life"
   return lives + " lives left"
@@ -62,6 +86,7 @@ function newlyClaimed(previous, next) {
 if (typeof module !== "undefined") {
   module.exports = {
     soundEvents: soundEvents,
+    impactSounds: impactSounds,
     feedback: feedback,
     placementRejection: placementRejection,
     newlyClaimed: newlyClaimed

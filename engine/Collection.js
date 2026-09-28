@@ -184,7 +184,9 @@ var sfx = {
   "capture": "assets/sfx/capture.wav",
   "life-lost": "assets/sfx/life-lost.wav",
   "level-clear": "assets/sfx/level-clear.wav",
-  "game-over": "assets/sfx/game-over.wav"
+  "game-over": "assets/sfx/game-over.wav",
+  "bounce": "assets/sfx/bounce.wav",
+  "clack": "assets/sfx/clack.wav"
 }
 
 function indexForWave(wave, count) {

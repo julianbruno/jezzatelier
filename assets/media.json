@@ -298,5 +298,25 @@
     "file": "assets/sfx/game-over.wav",
     "bytes": 32678,
     "sha256": "9321cfefff7eed6fe8cd465dd1f47c22fe57f3164209b31153a2aadb2a0b5b41"
+  },
+  {
+    "id": "bounce",
+    "title": "Bounce",
+    "creator": "Jezz Atelier",
+    "kind": "sfx",
+    "license": "CC0 1.0 (project original)",
+    "file": "assets/sfx/bounce.wav",
+    "bytes": 10628,
+    "sha256": "0fc71b0fe2dfeac48c71f82608243e791ea624d20b3f5ca0c310e75249556aa9"
+  },
+  {
+    "id": "clack",
+    "title": "Clack",
+    "creator": "Jezz Atelier",
+    "kind": "sfx",
+    "license": "CC0 1.0 (project original)",
+    "file": "assets/sfx/clack.wav",
+    "bytes": 7100,
+    "sha256": "6e253bec7298e62496eaf7122097151128f4c7a36c82ba174edafd98d555733b"
   }
 ]

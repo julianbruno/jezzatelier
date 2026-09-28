@@ -39,6 +39,7 @@ Item {
   signal dismissRequested()
   signal persistenceRequested()
   signal soundRequested(string name)
+  signal impactRequested(string name, real gain)
 
   focus: true
   onOpenedChanged: game.opened = opened
@@ -82,6 +83,7 @@ Item {
     if (!opened || !previous) return
 
     Events.soundEvents(previous, next).forEach(function(name) { root.soundRequested(name) })
+    Events.impactSounds(next).forEach(function(sound) { root.impactRequested(sound.name, sound.gain) })
     var messages = Events.feedback(previous, next)
     if (messages.length > 0) {
       var texts = messages.map(function(message) { return message.text })

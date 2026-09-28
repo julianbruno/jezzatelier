@@ -13,16 +13,37 @@ Item {
   property int wave: 1
   property real musicVolume: 0.6
   property real sfxVolume: 0.8
-  // Object emitting soundRequested(name); GameView in the overlay.
+  // Object emitting soundRequested(name) and impactRequested(name, gain); GameView.
   property QtObject events: null
+  // Collision sounds sit under the cues and repeat at most this often per sound.
+  readonly property real impactLevel: 0.45
+  readonly property int impactInterval: 70
+  property var lastImpactAt: ({})
 
   readonly property url trackSource: Qt.resolvedUrl("../" + Collection.trackForWave(wave).file)
 
-  function playSound(name) {
+  function effectNamed(name) {
     for (var i = 0; i < effects.count; i++) {
       var effect = effects.objectAt(i) as SoundEffect
-      if (effect && effect.objectName === name) effect.play()
+      if (effect && effect.objectName === name) return effect
     }
+    return null
+  }
+
+  function playSound(name) {
+    var effect = effectNamed(name)
+    if (!effect) return
+    effect.volume = sfxVolume
+    effect.play()
+  }
+
+  function playImpact(name, gain) {
+    var now = Date.now()
+    var effect = effectNamed(name)
+    if (!effect || sfxVolume <= 0 || now - (lastImpactAt[name] || 0) < impactInterval) return
+    lastImpactAt[name] = now
+    effect.volume = sfxVolume * impactLevel * gain
+    effect.play()
   }
 
   function syncMusic() {
@@ -41,6 +62,10 @@ Item {
 
     function onSoundRequested(name) {
       root.playSound(name)
+    }
+
+    function onImpactRequested(name, gain) {
+      root.playImpact(name, gain)
     }
   }
 
@@ -61,7 +86,6 @@ Item {
       required property string modelData
       objectName: modelData
       source: Qt.resolvedUrl("../" + Collection.sfxFile(modelData))
-      volume: root.sfxVolume
     }
   }
 }
