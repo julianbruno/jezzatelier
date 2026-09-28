@@ -27,10 +27,18 @@ Summon the overlay with:
 omarchy-shell shell summon io.github.julianbruno.jezz-atelier '{}'
 ```
 
-**Optional:** add a shortcut to `~/.config/hypr/bindings.conf` (choose an unused key):
+To list Jezz Atelier in the Omarchy app launcher (`SUPER + SPACE`) with its own icon, run this once after adding the plugin:
 
-```ini
-bindd = SUPER, J, Jezz Atelier, exec, omarchy-shell shell toggle io.github.julianbruno.jezz-atelier '{}'
+```sh
+~/.config/omarchy/plugins/io.github.julianbruno.jezz-atelier/scripts/install-launcher.sh
+```
+
+It writes one desktop entry and one icon under `~/.local/share`; `install-launcher.sh --remove` takes them away. Omarchy plugins have no install hooks, so this step is opt-in.
+
+**Optional:** add a shortcut to `~/.config/hypr/bindings.lua` (choose an unused key; `SUPER + J` is taken by default):
+
+```lua
+o.bind("SUPER + SHIFT + J", "Jezz Atelier", "omarchy-shell shell toggle io.github.julianbruno.jezz-atelier '{}'")
 ```
 
 The shell IPC contract accepts `summon <id> <payloadJson>`, `toggle <id> <payloadJson>`, and `hide <id>`; the wrapper also supplies `{}` if the third summon/toggle argument is omitted. Escape pauses during play; from a paused dialog it closes the overlay.
@@ -60,7 +68,7 @@ omarchy plugin remove io.github.julianbruno.jezz-atelier
 
 After an update, run `omarchy-restart-shell`: the running shell keeps the previously loaded game code until it restarts.
 
-Removal disables the plugin and removes its git checkout; it does **not** clear your saved scores/settings. Update previews the diff and requires a clean fast-forward checkout. Re-enable with `omarchy plugin enable io.github.julianbruno.jezz-atelier`.
+Before removing the plugin, run `scripts/install-launcher.sh --remove` if you added the launcher entry. Removal disables the plugin and removes its git checkout; it does **not** clear your saved scores/settings. Update previews the diff and requires a clean fast-forward checkout. Re-enable with `omarchy plugin enable io.github.julianbruno.jezz-atelier`.
 
 ## Data, privacy, and security
 

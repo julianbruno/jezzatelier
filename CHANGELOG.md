@@ -12,3 +12,4 @@ All notable changes to this project will be documented here. Format: [Keep a Cha
 - HUD with time and coverage gauges, life dots, and the active player; toasts for captures, broken walls, turn changes, and refused placements.
 - Ten public-domain paintings, ten CC0 recordings, and original effects; local preferences and high scores.
 - Offline validation, media notices, and release preview tooling.
+- Opt-in `scripts/install-launcher.sh` that lists the game in the Omarchy app launcher with its own icon.
