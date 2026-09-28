@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - 2026-09-27
+## [1.0.0] - 2026-09-27
 
 ### Added
 
@@ -14,3 +14,6 @@ All notable changes to this project will be documented here. Format: [Keep a Cha
 - Ten public-domain paintings, ten CC0 recordings, and original effects; local preferences and high scores.
 - Offline validation, media notices, and release preview tooling.
 - Opt-in `scripts/install-launcher.sh` that lists the game in the Omarchy app launcher with its own icon.
+- Marketplace-ready root manifest, README, license, media notices, preview, and installation/removal instructions.
+
+The earlier `0.1.0` version was an unreleased draft, not a published release.

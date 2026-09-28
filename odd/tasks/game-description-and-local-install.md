@@ -14,9 +14,9 @@ Keep the installed Omarchy plugin current, align all public-facing guides and ma
 - [ ] DOC-3 Verify docs, manifest, bundled files, and install lifecycle; commit a reviewable work unit, then update this PC from that commit and restart the shell. Check: validation suite, isolated lifecycle smoke, live installed revision and shell ping; record unavailable live launcher/audio checks. Route: delegated verifier (command verification).
 
 ## Progress
-- Official `plugins.omarchy.org/publish.html` requires a public GitHub repository, root manifest, README/license, safe install/removal, optional preview, and issue-form submission; marketplace validates listings, not security. Submission itself remains out of scope.
+- Official `plugins.omarchy.org/publish.html` requires a public GitHub repository, root manifest, README/license, safe install/removal, optional preview, and issue-form submission; marketplace validates listings, not security. Direct inspection of the actual `submit-plugin.yml` found category `Games` invalid (use `Other`) and tags restricted to 1–3 predefined choices (use `Games`, `Media`, `Quickshell`); submission requires the human's ownership/preview-permission confirmation. Submission itself remains out of scope.
 - Repo is public at `https://github.com/julianbruno/jezzatelier` (default branch main at `966dd85`). The older `omarchy-jezz-atelier` URLs in docs are invalid. Git SSH remote auth currently fails in this environment; do not claim a push.
 - `.codegraph/` is untracked tool-generated data; do not include it in the release.
 
 ## Next step
-Delegate scoped documentation updates; verify, commit, and update the local plugin without submitting or pushing.
+Initial documentation work unit committed as `3e850b0` on `feat/jezz-atelier-marketplace-docs`. Correct the form mismatch, verify and commit the correction, then update the installed plugin and restart; no submission/push.
