@@ -116,17 +116,14 @@ function resetField(game) {
   spawnSpheres(game, waveProfile)
 }
 
-function reset(game, seed, playerCount, difficulty) {
+function reset(game, seed, difficulty) {
   game.seed = (seed >>> 0) || DEFAULT_SEED
   game.rngState = game.seed
-  game.playerCount = playerCount === 2 ? 2 : 1
   game.difficulty = normalizedDifficulty(difficulty)
   game.wave = 1
   game.status = "ready"
   game.orientation = "vertical"
-  game.activePlayer = 0
   game.score = 0
-  game.playerScores = game.playerCount === 2 ? [0, 0] : [0]
   game.lives = profile(1, game.difficulty).lives
   resetField(game)
   return game
@@ -137,7 +134,7 @@ function createGame(seed, options) {
   var game = {
     globalSpeedScale: options.globalSpeedScale === undefined ? 1 : options.globalSpeedScale
   }
-  return reset(game, seed, options.playerCount, options.difficulty)
+  return reset(game, seed, options.difficulty)
 }
 
 function start(game) {
@@ -208,13 +205,8 @@ function placeWall(game, x, y) {
   return true
 }
 
-function advanceTurn(game) {
-  if (game.playerCount === 2) game.activePlayer = 1 - game.activePlayer
-}
-
 function award(game, points) {
   game.score += points
-  game.playerScores[game.activePlayer] += points
 }
 
 function isWallTouched(game, wall) {
@@ -280,13 +272,11 @@ function completeWall(game, wall) {
   game.walls.push(wall)
   game.growingWall = null
   updateCoverage(game)
-  advanceTurn(game)
 }
 
 function breakWall(game) {
   game.growingWall = null
   game.lives--
-  advanceTurn(game)
   if (game.lives <= 0) game.status = "game-over"
 }
 

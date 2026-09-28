@@ -24,7 +24,7 @@ TestCase {
     compare(view.controller.snapshot.status, "paused")
   }
   function test_boardAndHud() {
-    var state = Engine.createGame(42, {playerCount: 2})
+    var state = Engine.createGame(42)
     state.regions[0].claimed = true
     var board = createTemporaryObject(boardComponent, this, {snapshot: state})
     var hud = createTemporaryObject(hudComponent, this, {snapshot: state})
@@ -35,7 +35,6 @@ TestCase {
     compare(hud.timeFraction, 1)
     compare(hud.coverageFraction, 0)
     near(hud.targetFraction, 0.75)
-    compare(hud.playerScoresVisible, true)
   }
 
   function test_keyboardOnlyFlow() {
@@ -53,13 +52,12 @@ TestCase {
 
   function test_preferencesAndScoreAndAudio() {
     var view = createTemporaryObject(viewComponent, this)
-    view.preferences = { difficulty: "expert", playerCount: 2, randomArtwork: false,
+    view.preferences = { difficulty: "expert", randomArtwork: false,
       artworkId: "vermeer-delft", brightness: 60, musicVolume: 0.4,
       sfxVolume: 0.2, reducedMotion: true }
     view.opened = true
     view.begin()
     compare(view.controller.snapshot.difficulty, "expert")
-    compare(view.controller.snapshot.playerCount, 2)
     compare(view.currentArtwork.id, "vermeer-delft")
     verify(view.musicShouldPlay)
     view.controller.togglePause()

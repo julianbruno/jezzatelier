@@ -15,7 +15,6 @@ Flow {
   readonly property real coverageFraction: snapshot ? snapshot.coverage : 0
   readonly property real targetFraction: snapshot ? snapshot.targetCoverage : 0
   readonly property bool timeRunningOut: snapshot !== null && snapshot.timeRemaining < 15
-  readonly property bool playerScoresVisible: snapshot !== null && snapshot.playerCount === 2
 
   spacing: 28
 
@@ -70,30 +69,6 @@ Flow {
     ProgressBar {
       fraction: root.coverageFraction
       target: root.targetFraction
-    }
-  }
-
-  Repeater {
-    model: root.playerScoresVisible ? 2 : 0
-
-    Rectangle {
-      id: playerCard
-
-      required property int index
-      readonly property bool active: root.snapshot.activePlayer === index
-
-      width: playerStat.width + 20
-      height: playerStat.height + 12
-      radius: 4
-      color: active ? Theme.controlSelected : "transparent"
-      border.color: active ? Theme.goldBright : "#2f4239"
-
-      StatBlock {
-        id: playerStat
-        anchors.centerIn: parent
-        caption: "PLAYER " + (playerCard.index + 1) + (playerCard.active ? " · PAINTING" : "")
-        value: root.snapshot.playerScores[playerCard.index].toLocaleString(Qt.locale("en_US"), "f", 0)
-      }
     }
   }
 }

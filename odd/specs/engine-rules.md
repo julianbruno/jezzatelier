@@ -34,7 +34,7 @@ Difficulty ids are `relaxed`, `classic`, and `expert`; unknown ids fall back to 
 - `start()` only moves `ready → running`.
 - `togglePause()` only swaps `running` and `paused`.
 - `nextLevel()` only works from `level-clear`: wave + 1, recompute target and timer from the profile, coverage 0, bonus 0, clear walls, one full-field region, spawn the new wave's spheres, status `running`. Lives and scores carry over.
-- `reset(seed, playerCount, difficulty)` restores wave 1 with a fresh seeded random stream, `ready` status, profile lives, orientation `vertical`, active player 0, zero scores.
+- `reset(seed, difficulty)` restores wave 1 with a fresh seeded random stream, `ready` status, profile lives, orientation `vertical`, and a zero score.
 
 ## Wall placement
 
@@ -46,14 +46,14 @@ Difficulty ids are `relaxed`, `classic`, and `expert`; unknown ids fall back to 
 ## Wall growth, breakage, and completion
 
 - Each step, both ends move outward at `7.5` units/s and clamp at their limits.
-- After moving, if any sphere in the wall's region touches it, the **whole** growing wall is destroyed: lives − 1, the active player advances, and at 0 lives the status becomes `game-over`. Touching means: for a vertical wall, `|ball.x − anchorX| ≤ radius + 0.09` and the ball's vertical extent overlaps `[negativeEnd, positiveEnd]`; horizontal is symmetric.
-- When both ends reach their limits, the wall completes: its region is replaced in place by two regions split at the anchor coordinate. Spheres are reassigned to the side containing them; each side with no spheres is `claimed`. The completed wall segment is recorded, the growing wall cleared, coverage updated, and the active player advances.
+- After moving, if any sphere in the wall's region touches it, the **whole** growing wall is destroyed: lives − 1, and at 0 lives the status becomes `game-over`. Touching means: for a vertical wall, `|ball.x − anchorX| ≤ radius + 0.09` and the ball's vertical extent overlaps `[negativeEnd, positiveEnd]`; horizontal is symmetric.
+- When both ends reach their limits, the wall completes: its region is replaced in place by two regions split at the anchor coordinate. Spheres are reassigned to the side containing them; each side with no spheres is `claimed`. The completed wall segment is recorded, the growing wall cleared, and coverage updated.
 
 ## Coverage, score, and wave clear
 
 - `coverage = claimed area / 160`.
-- Each coverage update awards `max(0, round((newCoverage − oldCoverage) × 10000))` points to the total and to the active player (before the turn advances).
-- When `coverage ≥ targetCoverage`, a bonus `round(timeRemaining × 25 + lives × 250)` is added to the total and the active player, stored as `lastBonus`, and status becomes `level-clear`.
+- Each coverage update awards `max(0, round((newCoverage − oldCoverage) × 10000))` points to the score.
+- When `coverage ≥ targetCoverage`, a bonus `round(timeRemaining × 25 + lives × 250)` is added to the score, stored as `lastBonus`, and status becomes `level-clear`.
 
 ## Time
 
@@ -63,10 +63,9 @@ Difficulty ids are `relaxed`, `classic`, and `expert`; unknown ids fall back to 
 
 ## Players
 
-- `playerCount` is 1 or 2 (local hot-seat co-op). Lives, coverage, and progress are shared; `playerScores[0..1]` track attribution.
-- The active player advances after every resolved wall (completed or broken), only in two-player mode.
+- Single player only. The reference's local two-player hot-seat mode is deliberately not implemented.
 
 ## Randomness and snapshots
 
-- A seeded 32-bit generator lives in state; a zero seed uses a fixed non-zero default. The same seed, profile, and player count always produce identical state. No logic may use `Math.random`.
+- A seeded 32-bit generator lives in state; a zero seed uses a fixed non-zero default. The same seed and profile always produce identical state. No logic may use `Math.random`.
 - `snapshot()` returns a deep, JSON-safe copy of all observable state including the generator state, suitable for rendering and for local persistence.

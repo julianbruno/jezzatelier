@@ -9,8 +9,8 @@ TestCase {
     verify(Math.abs(actual - expected) < 0.000001, actual + " != " + expected)
   }
 
-  function runningGame(playerCount) {
-    var game = Engine.createGame(123, { playerCount: playerCount || 1 })
+  function runningGame() {
+    var game = Engine.createGame(123)
     Engine.start(game)
     return game
   }
@@ -121,7 +121,7 @@ TestCase {
   }
 
   function test_growth_claim_score_and_turn() {
-    var game = runningGame(2)
+    var game = runningGame()
     game.spheres = [stillSphere(12, 5)]
 
     verify(Engine.placeWall(game, 8, 5))
@@ -136,13 +136,11 @@ TestCase {
     verify(game.regions[0].claimed)
     near(game.coverage, 0.5)
     compare(game.score, 5000)
-    compare(game.playerScores[0], 5000)
-    compare(game.activePlayer, 1)
     compare(game.walls.length, 1)
   }
 
   function test_break_and_game_over() {
-    var game = runningGame(2)
+    var game = runningGame()
     game.spheres = [{ id: 1, regionId: 1, x: 8, y: 5.6, vx: 0, vy: -4, radius: 0.28 }]
 
     verify(Engine.placeWall(game, 8, 5))
@@ -150,7 +148,6 @@ TestCase {
     compare(game.growingWall, null)
     compare(game.walls.length, 0)
     compare(game.lives, 2)
-    compare(game.activePlayer, 1)
 
     game.lives = 1
     game.spheres[0].y = 5.6
@@ -158,7 +155,6 @@ TestCase {
     Engine.step(game, 0.05)
     compare(game.lives, 0)
     compare(game.status, "game-over")
-    compare(game.activePlayer, 0)
   }
 
   function test_bounce() {
@@ -171,7 +167,15 @@ TestCase {
     verify(game.spheres[0].vx < 0 && game.spheres[0].vy > 0)
   }
 
-  function test_clear_next_and_single_player() {
+  function test_singlePlayerOnly() {
+    var game = Engine.createGame(123, { playerCount: 2, difficulty: "expert" })
+    compare(game.difficulty, "expert")
+    compare(game.playerCount, undefined)
+    compare(game.activePlayer, undefined)
+    compare(game.playerScores, undefined)
+  }
+
+  function test_clear_next_and_score() {
     var game = runningGame()
     game.spheres = [stillSphere(12, 5)]
     game.targetCoverage = 0.5
@@ -181,8 +185,6 @@ TestCase {
     compare(game.status, "level-clear")
     compare(game.lastBonus, Math.round(game.timeRemaining * 25 + game.lives * 250))
     compare(game.score, 5000 + game.lastBonus)
-    compare(game.playerScores[0], game.score)
-    compare(game.activePlayer, 0)
 
     var score = game.score
     var lives = game.lives

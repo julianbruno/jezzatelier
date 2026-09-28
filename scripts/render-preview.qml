@@ -23,7 +23,7 @@ Window {
   }
 
   Component.onCompleted: Qt.callLater(function() {
-    view.controller.newGame("classic", 2, 7)
+    view.controller.newGame("classic", 7)
     view.controller.start()
     // Alternate cut orientations so the preview shows both kinds of wall.
     var positions = [[4, 5, "vertical"], [11, 6, "horizontal"], [11, 5, "vertical"], [8, 2, "horizontal"],

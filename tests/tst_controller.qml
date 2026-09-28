@@ -8,9 +8,9 @@ TestCase {
   function test_lifecycle() {
     var game = createTemporaryObject(controllerComponent, this)
     verify(game !== null)
-    game.newGame("expert", 2, 42)
+    game.newGame("expert", 42)
     compare(game.snapshot.difficulty, "expert")
-    compare(game.snapshot.playerCount, 2)
+    compare(game.snapshot.seed, 42)
     verify(!game.frameActive)
     game.opened = true
     game.start()
@@ -24,7 +24,7 @@ TestCase {
   }
   function test_actions() {
     var game = createTemporaryObject(controllerComponent, this)
-    game.newGame("classic", 1, 42)
+    game.newGame("classic", 42)
     game.opened = true
     game.start()
     game.toggleOrientation()
@@ -39,7 +39,7 @@ TestCase {
 
   function test_frameHitchDoesNotDrainClock() {
     var game = createTemporaryObject(controllerComponent, this)
-    game.newGame("classic", 1, 42)
+    game.newGame("classic", 42)
     game.opened = true
     game.start()
     game.advance(5)

@@ -17,7 +17,7 @@ TestCase {
 
   function snapshot(overrides) {
     var base = {
-      status: "running", lives: 3, playerCount: 1, activePlayer: 0, coverage: 0, walls: [],
+      status: "running", lives: 3, coverage: 0, walls: [],
       regions: [{ id: 1, claimed: false }]
     }
     return Object.assign(base, overrides || {})
@@ -41,11 +41,11 @@ TestCase {
     compare(Events.feedback(snapshot({ lives: 2 }), snapshot({ lives: 1 }))[0].tone, "loss")
   }
 
-  function test_feedbackForTurnChange() {
+  function test_feedbackHasNoTurnMessages() {
     var before = snapshot({ playerCount: 2 })
     var after = snapshot({ playerCount: 2, activePlayer: 1, lives: 2 })
     var texts = Events.feedback(before, after).map(function(message) { return message.text })
-    compare(texts.join(" | "), "Wall broken · 2 lives left | Player 2's turn")
+    compare(texts.join(" | "), "Wall broken · 2 lives left")
     compare(Events.feedback(null, after).length, 0)
     compare(Events.feedback(after, after).length, 0)
   }

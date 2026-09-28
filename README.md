@@ -6,7 +6,7 @@ Jezz Atelier is a native, offline JezzBall-inspired kinetic gallery for the Omar
 
 ## Features
 
-- One-player or local two-player hot-seat co-op; Relaxed, Classic, and Expert modes.
+- Single-player play in Relaxed, Classic, and Expert modes.
 - Vertical and horizontal cuts, with an on-board cursor that shows the current orientation.
 - Lacquered spheres that bounce off the walls and off each other, with impact sounds.
 - Ten paintings, ten music tracks, original sound effects, gallery browsing, brightness and volume settings.
@@ -56,7 +56,7 @@ The shell IPC contract accepts `summon <id> <payloadJson>`, `toggle <id> <payloa
 
 ## How to play
 
-Place a horizontal or vertical wall inside open space while avoiding the moving spheres, which bounce off the walls and off each other. Both ends grow outward; if a sphere hits the unfinished wall, you lose a life. When the wall completes, any resulting region without a sphere is claimed, revealing the painting and earning points. Reach the coverage target before time or lives run out to advance to the next wave; remaining time and lives earn a bonus. In two-player mode, turns alternate after each wall resolves; progress and lives are shared.
+Place a horizontal or vertical wall inside open space while avoiding the moving spheres, which bounce off the walls and off each other. Both ends grow outward; if a sphere hits the unfinished wall, you lose a life. When the wall completes, any resulting region without a sphere is claimed, revealing the painting and earning points. Reach the coverage target before time or lives run out to advance to the next wave; remaining time and lives earn a bonus.
 
 ## Update, disable, remove
 

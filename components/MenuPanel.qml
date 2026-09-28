@@ -47,7 +47,7 @@ Column {
 
   function scoreLine(entry, index) {
     return "#" + (index + 1) + "   " + entry.score + "   wave " + entry.wave + " · "
-      + entry.difficulty + " · " + entry.playerCount + "P · " + entry.date
+      + entry.difficulty + " · " + entry.date
   }
 
   function creditLine(entry) {
@@ -111,32 +111,6 @@ Column {
           wrapMode: Text.Wrap
           text: root.difficultyNotes[root.preferences.difficulty] || ""
           color: "#f5eedb"
-        }
-
-        Text {
-          text: "PLAYERS"
-          color: "#c8ad72"
-          font.pixelSize: 12
-        }
-
-        Row {
-          spacing: 8
-
-          AtelierButton {
-            width: (root.width - 8) / 2
-            implicitWidth: 0
-            label: "1 PLAYER"
-            selected: root.preferences.playerCount !== 2
-            onActivated: root.preferenceRequested("playerCount", 1)
-          }
-
-          AtelierButton {
-            width: (root.width - 8) / 2
-            implicitWidth: 0
-            label: "2 PLAYERS · HOT-SEAT"
-            selected: root.preferences.playerCount === 2
-            onActivated: root.preferenceRequested("playerCount", 2)
-          }
         }
 
         Text {

@@ -11,7 +11,6 @@ var DEFAULT_SCORE_LIMIT = 10
 function defaultPreferences() {
   return {
     difficulty: "classic",
-    playerCount: 1,
     randomArtwork: true,
     artworkId: Collection.artworks[0].id,
     brightness: 82,
@@ -35,7 +34,6 @@ function sanitizePreferences(raw) {
   if (!isPlainObject(raw)) return result
 
   if (DIFFICULTIES.indexOf(raw.difficulty) !== -1) result.difficulty = raw.difficulty
-  if (raw.playerCount === 1 || raw.playerCount === 2) result.playerCount = raw.playerCount
   if (Collection.artworkById(raw.artworkId)) result.artworkId = raw.artworkId
   if (typeof raw.randomArtwork === "boolean") result.randomArtwork = raw.randomArtwork
   if (typeof raw.reducedMotion === "boolean") result.reducedMotion = raw.reducedMotion
@@ -54,21 +52,17 @@ function isValidScoreEntry(entry) {
     && isNonNegative(entry.score)
     && Number.isSafeInteger(entry.wave) && entry.wave >= 1
     && DIFFICULTIES.indexOf(entry.difficulty) !== -1
-    && (entry.playerCount === 1 || entry.playerCount === 2)
-    && Array.isArray(entry.playerScores)
-    && entry.playerScores.length === entry.playerCount
-    && entry.playerScores.every(isNonNegative)
     && typeof entry.date === "string" && /^\d{4}-\d{2}-\d{2}/.test(entry.date)
 }
 
+// Entries saved by earlier versions may carry playerCount and playerScores; cleaning
+// keeps only the fields listed here, so those are dropped.
 function cleanEntry(entry) {
   if (!isValidScoreEntry(entry)) return null
   return {
     score: entry.score,
     wave: entry.wave,
     difficulty: entry.difficulty,
-    playerCount: entry.playerCount,
-    playerScores: entry.playerScores.slice(),
     date: entry.date
   }
 }

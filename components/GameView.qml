@@ -52,7 +52,7 @@ Item {
 
   function begin() {
     newHighScoreRank = 0
-    game.newGame(preferences.difficulty, preferences.playerCount)
+    game.newGame(preferences.difficulty)
     menuVisible = false
     game.start()
     restoreFocus()
@@ -117,7 +117,6 @@ Item {
     var state = game.snapshot
     var result = Storage.insertHighScore(highScores, {
       score: state.score, wave: state.wave, difficulty: state.difficulty,
-      playerCount: state.playerCount, playerScores: state.playerScores,
       date: new Date().toISOString().slice(0, 10)
     })
     highScores = result.scores
@@ -148,8 +147,6 @@ Item {
     }
     if (status === "game-over") return "Final score: " + game.snapshot.score
       + (newHighScoreRank ? "\nNew high score — #" + newHighScoreRank : "")
-    if (game.snapshot.playerCount === 2)
-      return "Player " + (game.snapshot.activePlayer + 1) + " is painting now."
     return "Take your time."
   }
 

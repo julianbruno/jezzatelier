@@ -60,9 +60,6 @@ function feedback(previous, next) {
   if (next.lives < previous.lives && next.lives > 0) {
     messages.push({ tone: "loss", text: "Wall broken · " + livesLeftText(next.lives) })
   }
-  if (next.playerCount === 2 && next.activePlayer !== previous.activePlayer && next.status === "running") {
-    messages.push({ tone: "info", text: "Player " + (next.activePlayer + 1) + "'s turn" })
-  }
   return messages
 }
 

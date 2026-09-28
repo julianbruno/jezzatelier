@@ -30,9 +30,8 @@ Item {
     clock = { remainder: 0 }
   }
 
-  function newGame(difficulty, playerCount, seed) {
-    var options = { difficulty: difficulty, playerCount: playerCount }
-    gameState = Engine.createGame(seed === undefined ? Date.now() : seed, options)
+  function newGame(difficulty, seed) {
+    gameState = Engine.createGame(seed === undefined ? Date.now() : seed, { difficulty: difficulty })
     resetClock()
     publish()
   }

@@ -8,7 +8,7 @@ TestCase {
   function test_defaultsAndSanitization() {
     var defaults = Storage.defaultPreferences()
     compare(defaults.difficulty, "classic")
-    compare(defaults.playerCount, 1)
+    compare(defaults.playerCount, undefined)
     compare(defaults.brightness, 82)
     compare(defaults.musicVolume, 0.6)
     compare(defaults.sfxVolume, 0.8)
@@ -17,7 +17,7 @@ TestCase {
       artworkId: "missing", brightness: 999, musicVolume: -4, sfxVolume: 4,
       randomArtwork: false, reducedMotion: true, extra: "discard" })
     compare(clean.difficulty, "classic")
-    compare(clean.playerCount, 1)
+    compare(clean.playerCount, undefined)
     compare(clean.artworkId, defaults.artworkId)
     compare(clean.brightness, 100)
     compare(clean.musicVolume, 0)
@@ -36,13 +36,14 @@ TestCase {
     compare(state.preferences.brightness, 45)
     compare(state.highScores.length, 1)
     compare(Storage.parseState(Storage.serializeState(state)).highScores[0].score, 4)
+    compare(state.highScores[0].playerCount, undefined)
+    compare(state.highScores[0].playerScores, undefined)
     compare(JSON.parse(Storage.serializeState(state)).version, 1)
   }
 
   function test_rankingAndLimit() {
     function entry(score, wave, date) {
-      return { score: score, wave: wave, difficulty: "classic", playerCount: 1,
-        playerScores: [score], date: date }
+      return { score: score, wave: wave, difficulty: "classic", date: date }
     }
     var first = Storage.insertHighScore([], entry(50, 2, "2025-02-01"), 2)
     compare(first.rank, 1)
