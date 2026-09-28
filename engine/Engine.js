@@ -13,6 +13,7 @@ var TICK = 1 / 120
 var MAX_TICKS_PER_FRAME = 30
 var MAX_FRAME_TIME = 30
 var DEFAULT_SEED = 0x6d2b79f5
+var MAX_IMPACTS_PER_FRAME = 32
 
 var DIFFICULTIES = ["relaxed", "classic", "expert"]
 
@@ -111,6 +112,7 @@ function resetField(game) {
   game.regions = [{ id: 1, minX: 0, maxX: WIDTH, minY: 0, maxY: HEIGHT, claimed: false }]
   game.nextRegionId = 2
   game.nextWallId = 1
+  game.impacts = []
   spawnSpheres(game, waveProfile)
 }
 
@@ -304,33 +306,56 @@ function regionOf(game, sphere) {
   return game.regions.find(function(candidate) { return candidate.id === sphere.regionId })
 }
 
+// Collision sounds need to know what was hit, how hard, and where. Impacts accumulate
+// during a frame and advanceFrame starts each frame with an empty list.
+function recordImpact(game, kind, speed, x, y) {
+  if (game.impacts.length < MAX_IMPACTS_PER_FRAME)
+    game.impacts.push({ kind: kind, speed: speed, x: x, y: y })
+}
+
 // Clamps a sphere inside its region and turns its velocity back inward at each edge.
+// Returns the speed of the hit (0 when the sphere was already heading inward).
 function keepInsideRegion(sphere, region) {
+  var hitX = 0
+  var hitY = 0
+
   if (sphere.x < region.minX + sphere.radius) {
     sphere.x = region.minX + sphere.radius
+    hitX = Math.max(0, -sphere.vx)
     sphere.vx = Math.abs(sphere.vx)
   } else if (sphere.x > region.maxX - sphere.radius) {
     sphere.x = region.maxX - sphere.radius
+    hitX = Math.max(0, sphere.vx)
     sphere.vx = -Math.abs(sphere.vx)
   }
 
   if (sphere.y < region.minY + sphere.radius) {
     sphere.y = region.minY + sphere.radius
+    hitY = Math.max(0, -sphere.vy)
     sphere.vy = Math.abs(sphere.vy)
   } else if (sphere.y > region.maxY - sphere.radius) {
     sphere.y = region.maxY - sphere.radius
+    hitY = Math.max(0, sphere.vy)
     sphere.vy = -Math.abs(sphere.vy)
   }
+
+  return Math.hypot(hitX, hitY)
+}
+
+function bounceInsideRegion(game, sphere) {
+  var speed = keepInsideRegion(sphere, regionOf(game, sphere))
+  if (speed > 0) recordImpact(game, "rail", speed, sphere.x, sphere.y)
 }
 
 // Equal-mass elastic collision: overlapping spheres are pushed apart along the line
 // between their centers and, if approaching, exchange their velocity along that line.
+// Returns the closing speed of the impact, or -1 when the spheres do not touch.
 function collidePair(a, b) {
   var dx = b.x - a.x
   var dy = b.y - a.y
   var distance = Math.hypot(dx, dy)
   var contact = a.radius + b.radius
-  if (distance >= contact) return false
+  if (distance >= contact) return -1
 
   var nx = distance > 0 ? dx / distance : 1
   var ny = distance > 0 ? dy / distance : 0
@@ -341,13 +366,13 @@ function collidePair(a, b) {
   b.y += ny * push
 
   var approach = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny
-  if (approach < 0) {
-    a.vx += approach * nx
-    a.vy += approach * ny
-    b.vx -= approach * nx
-    b.vy -= approach * ny
-  }
-  return true
+  if (approach >= 0) return 0
+
+  a.vx += approach * nx
+  a.vy += approach * ny
+  b.vx -= approach * nx
+  b.vy -= approach * ny
+  return -approach
 }
 
 function collideSpheres(game) {
@@ -356,10 +381,13 @@ function collideSpheres(game) {
     for (var j = i + 1; j < spheres.length; j++) {
       var a = spheres[i]
       var b = spheres[j]
-      if (a.regionId !== b.regionId || !collidePair(a, b)) continue
-      var region = regionOf(game, a)
-      keepInsideRegion(a, region)
-      keepInsideRegion(b, region)
+      if (a.regionId !== b.regionId) continue
+
+      var speed = collidePair(a, b)
+      if (speed < 0) continue
+      if (speed > 0) recordImpact(game, "sphere", speed, (a.x + b.x) / 2, (a.y + b.y) / 2)
+      bounceInsideRegion(game, a)
+      bounceInsideRegion(game, b)
     }
   }
 }
@@ -368,7 +396,7 @@ function moveSpheres(game, dt) {
   game.spheres.forEach(function(sphere) {
     sphere.x += sphere.vx * dt
     sphere.y += sphere.vy * dt
-    keepInsideRegion(sphere, regionOf(game, sphere))
+    bounceInsideRegion(game, sphere)
   })
   collideSpheres(game)
 }
@@ -394,6 +422,7 @@ function step(game, dt, options) {
 // simulation advances in 1/120 s ticks, and the leftover time is carried in `clock`.
 function advanceFrame(game, clock, frameTime) {
   var elapsed = Math.min(MAX_FRAME_TIME, Math.max(0, frameTime))
+  game.impacts = []
   elapseTime(game, elapsed)
 
   var available = Math.max(0, clock.remainder || 0) + elapsed

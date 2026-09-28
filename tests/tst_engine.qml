@@ -259,4 +259,45 @@ TestCase {
     })
     verify(game.spheres[1].vx >= 0)
   }
+
+  function test_railBounceIsRecordedWithImpactSpeed() {
+    var game = runningGame()
+    game.spheres = [movingSphere(1, 15.7, 5, 4, 1)]
+
+    Engine.step(game, 0.05, { advanceClock: false })
+    compare(game.impacts.length, 1)
+    compare(game.impacts[0].kind, "rail")
+    near(game.impacts[0].speed, 4)
+    near(game.impacts[0].x, 15.72)
+  }
+
+  function test_sphereCollisionIsRecordedOnce() {
+    var game = runningGame()
+    game.spheres = [movingSphere(1, 5, 5, 2, 0), movingSphere(2, 5.5, 5, -2, 0)]
+
+    Engine.step(game, 0.01, { advanceClock: false })
+    compare(game.impacts.length, 1)
+    compare(game.impacts[0].kind, "sphere")
+    near(game.impacts[0].speed, 4)
+    near(game.impacts[0].x, 5.25)
+  }
+
+  function test_restingContactIsSilent() {
+    var game = runningGame()
+    game.spheres = [movingSphere(1, 5, 5, -2, 0), movingSphere(2, 5.5, 5, 2, 0)]
+
+    Engine.step(game, 0.01, { advanceClock: false })
+    compare(game.impacts.length, 0)
+  }
+
+  function test_eachFrameStartsWithFreshImpacts() {
+    var game = runningGame()
+    game.spheres = [movingSphere(1, 15.7, 5, 4, 0)]
+    var clock = { remainder: 0 }
+
+    Engine.advanceFrame(game, clock, 1 / 60)
+    compare(game.impacts.length, 1)
+    Engine.advanceFrame(game, clock, 1 / 60)
+    compare(game.impacts.length, 0)
+  }
 }
