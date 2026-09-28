@@ -1,5 +1,7 @@
 # Jezz Atelier Omarchy Plugin
 
+> Historical implementation log. Early plans below include a two-player mode and a provisional repository URL; both were superseded. The shipped game is single-player, and the public repository is [julianbruno/jezzatelier](https://github.com/julianbruno/jezzatelier). Use [README.md](../../README.md) and [the marketplace checklist](../../docs/release-checklist.md) for current behavior and release steps.
+
 ## Objective
 
 Build a publication-ready, self-contained Omarchy Shell plugin that adapts the Jezz Atelier kinetic gallery game to a native QML fullscreen overlay.

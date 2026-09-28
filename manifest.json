@@ -4,7 +4,7 @@
   "name": "Jezz Atelier",
   "version": "0.1.0",
   "author": "Julian Bruno",
-  "description": "A native JezzBall-inspired kinetic gallery game",
+  "description": "An offline single-player JezzBall-inspired game: cut around bouncing spheres to reveal public-domain paintings",
   "kinds": ["overlay"],
   "entryPoints": {"overlay": "JezzAtelier.qml"}
 }

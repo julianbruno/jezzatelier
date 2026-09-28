@@ -2,15 +2,15 @@
 
 ![Jezz Atelier game preview](preview.png)
 
-Jezz Atelier is a native, offline JezzBall-inspired kinetic gallery for the Omarchy desktop: split a moving field to reveal public-domain paintings, accompanied by a collection of CC0 music.
+Jezz Atelier is a single-player, offline JezzBall-inspired game for Omarchy. Draw cuts around bouncing spheres to reveal public-domain paintings while listening to CC0 recordings.
 
 ## Features
 
 - Single-player play in Relaxed, Classic, and Expert modes.
-- The painting starts hidden under heavy blur and grain; each space you close slowly comes into focus.
+- Paintings start blurred and grainy; claimed regions sharpen over 2.6 seconds (instantly with reduced motion).
 - Vertical and horizontal cuts, with an on-board cursor that shows the current orientation.
 - Lacquered spheres that bounce off the walls and off each other, with impact sounds.
-- Ten paintings, ten music tracks, original sound effects, gallery browsing, brightness and volume settings.
+- Ten public-domain paintings, ten CC0 music recordings, original sound effects, gallery browsing, brightness and volume settings.
 - Local high scores and preferences; keyboard-only or pointer-only play; pause and reduced-motion option.
 - Layout that adapts to ultrawide screens by moving the HUD to a side panel.
 
@@ -19,7 +19,7 @@ Jezz Atelier is a native, offline JezzBall-inspired kinetic gallery for the Omar
 Omarchy with shell plugins (tested on package `omarchy 4.0.4-1`) and Qt 6.11. QtMultimedia is optional: the game runs silently without it. Review the source before enabling: plugins run **unsandboxed** in the shared shell process with your user permissions.
 
 ```sh
-omarchy plugin add https://github.com/julianbruno/omarchy-jezz-atelier.git --enable
+omarchy plugin add https://github.com/julianbruno/jezzatelier.git --enable
 ```
 
 Summon the overlay with:
@@ -28,7 +28,7 @@ Summon the overlay with:
 omarchy-shell shell summon io.github.julianbruno.jezz-atelier '{}'
 ```
 
-To list Jezz Atelier in the Omarchy app launcher (`SUPER + SPACE`) with its own icon, run this once after adding the plugin:
+To list Jezz Atelier with its own icon under **Apps** in the Omarchy menu, run this once after adding the plugin (the default `SUPER + SPACE` opens the menu, not a separate app search):
 
 ```sh
 ~/.config/omarchy/plugins/io.github.julianbruno.jezz-atelier/scripts/install-launcher.sh
@@ -67,7 +67,7 @@ omarchy plugin disable io.github.julianbruno.jezz-atelier
 omarchy plugin remove io.github.julianbruno.jezz-atelier
 ```
 
-After an update, run `omarchy-restart-shell`: the running shell keeps the previously loaded game code until it restarts.
+After an update, run `omarchy restart shell`: the running shell keeps the previously loaded game code until it restarts. See the [local install and release guide](docs/local-install-and-release.md) for the installed-checkout workflow and optional launcher removal.
 
 Before removing the plugin, run `scripts/install-launcher.sh --remove` if you added the launcher entry. Removal disables the plugin and removes its git checkout; it does **not** clear your saved scores/settings. Update previews the diff and requires a clean fast-forward checkout. Re-enable with `omarchy plugin enable io.github.julianbruno.jezz-atelier`.
 
@@ -77,7 +77,7 @@ Preferences and local high scores are saved at `${XDG_STATE_HOME:-$HOME/.local/s
 
 ## Compatibility and development
 
-Designed for the Omarchy overlay plugin contract; tested against Omarchy package `4.0.4-1` and Qt 6.11. Other shell versions and live installation/focus/audio behavior need independent testing. Run `scripts/validate.sh` for Qt 6 offscreen tests, lint, manifest, media and hygiene checks, and `scripts/smoke-lifecycle.sh` for an isolated install/update/remove run. To rebuild media (network, Node, Python, ImageMagick and ffmpeg required), use `scripts/build-media.sh`, then `scripts/generate-notices.sh` and validate. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Designed for the Omarchy overlay plugin contract; tested against Omarchy package `4.0.4-1` and Qt 6.11. Other shell versions and live launcher search, focus, and audible playback need independent testing. The public repository is [julianbruno/jezzatelier](https://github.com/julianbruno/jezzatelier); this documentation does not imply that current local changes have been pushed or submitted to the marketplace. Run `scripts/validate.sh` for Qt 6 offscreen tests, lint, manifest, media and hygiene checks, and `scripts/smoke-lifecycle.sh` for an isolated install/update/remove run. To rebuild media (network, Node, Python, ImageMagick and ffmpeg required), use `scripts/build-media.sh`, then `scripts/generate-notices.sh` and validate. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits and license
 

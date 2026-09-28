@@ -6,7 +6,7 @@ Use Omarchy with shell plugins and Qt 6 (tested with Qt 6.11). Run `scripts/vali
 
 `scripts/smoke-lifecycle.sh [revision]` runs the plugin install/enable/update/remove lifecycle against a committed revision in a throwaway `HOME`; it never contacts the running shell.
 
-Write a failing behavior test first (strict TDD), observe RED, implement the smallest change, observe GREEN, then refactor with tests green. Use Conventional Commits and keep related tests and docs with the change.
+For behavior changes, write a failing test first (strict TDD), observe RED, implement the smallest change, observe GREEN, then refactor with tests green. Copy-only documentation updates do not need a behavior RED; check links, commands, and manifest structure instead. Use Conventional Commits and keep related tests and docs with the change.
 
 ## Media
 
