@@ -40,7 +40,7 @@ Window {
 
   Timer {
     id: captureDelay
-    interval: 1200
+    interval: 3400 // Longer than the board reveal, so claimed regions are sharp.
     onTriggered: window.capture()
   }
 }

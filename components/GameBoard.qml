@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Effects
 import "Theme.js" as Theme
 import "../engine/Layout.js" as Layout
 import "../engine/Collection.js" as Collection
@@ -20,11 +21,16 @@ Item {
   property real cursorX: 8
   property real cursorY: 5
   property real wheelTravel: 0
+  // Claimed regions bring the sharp painting into focus over this many milliseconds.
+  property int revealDuration: 2600
+  // When each claimed region of the current field started its reveal, by region id.
+  // Keyed by id, not delegate, because a split shifts regions between delegates.
+  property var revealStarts: ({})
 
   readonly property var artwork: Collection.artworkForWave(snapshot ? snapshot.wave : 1, randomArtwork, artworkId)
   readonly property url artworkSource: Qt.resolvedUrl("../" + artwork.file)
-  // Unclaimed field stays veiled so claiming visibly uncovers the painting;
-  // brightness 100 keeps a light veil, 45 a heavy one.
+  // Unclaimed field shows a blurred, grainy, veiled painting so claiming visibly
+  // uncovers it; brightness 100 keeps a light veil, 45 a heavy one.
   readonly property real veilOpacity: 0.3 + (100 - brightness) / 55 * 0.45
   readonly property var box: Layout.fit(width, height)
   readonly property real unit: box.width / 16
@@ -36,6 +42,9 @@ Item {
   readonly property int claimedCount: snapshot
     ? snapshot.regions.filter(function(region) { return region.claimed }).length
     : 0
+
+  // Every field starts with nothing claimed, and region ids restart with each field.
+  onClaimedCountChanged: if (claimedCount === 0) revealStarts = ({})
 
   signal hovered(real x, real y)
   signal placed(real x, real y)
@@ -71,6 +80,27 @@ Item {
     rotated()
   }
 
+  // Reveal progress (0 to 1) a claimed region should show now; -1 when unclaimed.
+  function revealProgress(region) {
+    if (!region.claimed) return -1
+    if (reducedMotion) return 1
+    var started = revealStarts[region.id]
+    if (started === undefined) {
+      started = Date.now()
+      revealStarts[region.id] = started
+    }
+    return Math.min(1, (Date.now() - started) / Math.max(1, revealDuration))
+  }
+
+  // Progress of the region with this id, or -1 when it is not on the board.
+  function revealOf(regionId) {
+    for (var i = 0; i < regionViews.count; i++) {
+      var view = regionViews.itemAt(i) as RegionReveal
+      if (view && view.region.id === regionId) return view.progress
+    }
+    return -1
+  }
+
   function flashLoss() {
     if (!reducedMotion) lossFlash.restart()
   }
@@ -82,13 +112,35 @@ Item {
     height: root.box.height
     clip: true
 
+    // Loaded tiny and then blurred: cheap, and no detail survives to spoil the reveal.
+    // It stays visible under the blur, so the software renderer, which cannot run
+    // MultiEffect, still shows a soft painting instead of an empty field.
     Image {
+      id: veiledArtwork
       anchors.fill: parent
       source: root.artworkSource
       fillMode: Image.PreserveAspectCrop
       asynchronous: true
-      sourceSize.width: Math.ceil(parent.width)
-      sourceSize.height: Math.ceil(parent.height)
+      smooth: true
+      sourceSize.width: 96
+      sourceSize.height: 60
+    }
+
+    MultiEffect {
+      anchors.fill: parent
+      source: veiledArtwork
+      blurEnabled: true
+      blur: 1
+      blurMax: 48
+    }
+
+    // Grain regenerated with:
+    // magick -seed 7 -size 256x256 xc:gray50 -attenuate 1.6 +noise Gaussian -colorspace Gray -depth 8 grain.png
+    Image {
+      anchors.fill: parent
+      source: "grain.png"
+      fillMode: Image.Tile
+      opacity: 0.4
     }
 
     Rectangle {
@@ -99,33 +151,18 @@ Item {
   }
 
   Repeater {
+    id: regionViews
     model: root.snapshot ? root.snapshot.regions.length : 0
 
-    Item {
-      id: regionView
-
+    RegionReveal {
       required property int index
-      readonly property var region: root.snapshot.regions[index] || root.emptyRegion
-      readonly property var rect: root.regionRect(region)
 
-      visible: region.claimed
-      x: rect.x
-      y: rect.y
-      width: rect.width
-      height: rect.height
-      clip: true
-
-      Image {
-        x: root.box.x - regionView.x
-        y: root.box.y - regionView.y
-        width: root.box.width
-        height: root.box.height
-        source: root.artworkSource
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        sourceSize.width: Math.ceil(root.box.width)
-        sourceSize.height: Math.ceil(root.box.height)
-      }
+      region: root.snapshot.regions[index] || root.emptyRegion
+      rect: root.regionRect(region)
+      box: root.box
+      source: root.artworkSource
+      duration: root.revealDuration
+      progressFor: root.revealProgress
     }
   }
 

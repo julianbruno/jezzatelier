@@ -209,4 +209,58 @@ TestCase {
   }
 
   Component { id: signalSpyComponent; SignalSpy {} }
+
+  function field(regions) {
+    return { wave: 1, walls: [], spheres: [], growingWall: null, regions: regions }
+  }
+
+  function region(id, minX, maxX, claimed) {
+    return { id: id, minX: minX, maxX: maxX, minY: 0, maxY: 10, claimed: claimed }
+  }
+
+  function test_claimedRegionRevealsSlowly() {
+    var board = createTemporaryObject(boardComponent, this)
+    verify(board.revealDuration >= 2000)
+    board.revealDuration = 300
+    board.snapshot = field([region(1, 0, 16, false)])
+    compare(board.revealOf(1), 0)
+
+    board.snapshot = field([region(2, 0, 8, true), region(3, 8, 16, false)])
+    verify(board.revealOf(2) < 0.5)
+    compare(board.revealOf(3), 0)
+    tryVerify(function() { return board.revealOf(2) === 1 }, 2000)
+  }
+
+  function test_revealIsInstantWithReducedMotion() {
+    var board = createTemporaryObject(boardComponent, this, { reducedMotion: true })
+    board.snapshot = field([region(1, 0, 16, false)])
+    board.snapshot = field([region(2, 0, 8, true), region(3, 8, 16, false)])
+    compare(board.revealOf(2), 1)
+  }
+
+  function test_revealSurvivesRegionReordering() {
+    var board = createTemporaryObject(boardComponent, this)
+    board.revealDuration = 300
+    board.snapshot = field([region(1, 0, 16, false)])
+    board.snapshot = field([region(2, 0, 8, true), region(3, 8, 16, false)])
+    tryVerify(function() { return board.revealOf(2) === 1 }, 2000)
+
+    // A later split inserts regions before the revealed one; it must not fade in again.
+    board.snapshot = field([region(4, 8, 12, true), region(5, 12, 16, false), region(2, 0, 8, true)])
+    compare(board.revealOf(2), 1)
+    verify(board.revealOf(4) < 0.5)
+  }
+
+  function test_newFieldStartsVeiledAgain() {
+    var board = createTemporaryObject(boardComponent, this, { reducedMotion: true })
+    board.snapshot = field([region(1, 0, 16, false)])
+    board.snapshot = field([region(2, 0, 8, true), region(3, 8, 16, false)])
+    compare(board.revealOf(2), 1)
+
+    board.reducedMotion = false
+    board.revealDuration = 300
+    board.snapshot = field([region(1, 0, 16, false)])
+    board.snapshot = field([region(2, 0, 8, true), region(3, 8, 16, false)])
+    verify(board.revealOf(2) < 0.5)
+  }
 }
