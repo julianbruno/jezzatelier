@@ -180,7 +180,14 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
   - Add reproducible validation scripts and a safe demo/preview workflow.
   - Produce an optimized marketplace preview and verify a clean local install/remove cycle without touching packaged Omarchy sources.
   - Checks: full tests, all QML lint, manifest validation, repository hygiene, asset/license audit, install/enable/summon/hide/disable/remove smoke checks in an isolated temporary user configuration.
-  - Commit evidence: pending.
+  - Produced: README (features, controls, and the `omarchy-restart-shell` step after updates, all updated for JZA-005), MIT license, generated notices for 27 assets, changelog, contribution and security guides, release checklist, marketplace submission draft, `validate.sh`, `generate-notices.sh`, `render-preview.sh`, and `smoke-lifecycle.sh`.
+  - The official publication guide requests a public GitHub repository, root manifest, README, license, safe install/removal, an optional optimized preview, and a submission issue with repository link, category, and tags. It prescribes no preview filename, size, or format; `preview.png` at 1600×1000 is the project choice.
+  - Preview: re-rendered with the JZA-005 UI and a scripted two-player game that shows both vertical and horizontal cuts. The first render showed banding in the sky (96 colors) and then speckled life dots (dithering still active because `-dither None` followed `-colors`); fixed to 256 colors with dithering off before quantization. 468,038 bytes, inspected visually.
+  - Lifecycle smoke: `omarchy-shell` IPC (`enablePlugin`, `setPluginEnabled`, `listPlugins`, `rescanPlugins`, `summon`, `hide`) is served by a logging stub, because enable/disable/summon/hide can only be exercised against the one live shell. The real `omarchy-plugin-add/enable/disable/update/remove` scripts run in a throwaway `HOME` against a bare upstream: add `--enable` installs the exact revision without symlinks, disable/re-enable toggle state, update fast-forwards to a new upstream commit and is idempotent, and remove deletes the checkout and unlists it. A sha256 of the real `~/.config/omarchy` tree matched before and after.
+  - Checks on `0537296`: `scripts/validate.sh` → `Totals: 72 passed, 0 failed`, 23 QML files linted with only the allowlisted `PanelWindow` baseline, manifest OK, media inventory 27 assets OK, hygiene OK; `scripts/smoke-lifecycle.sh` → `Lifecycle smoke OK`.
+  - Live summon, keyboard focus, and restart-after-update were verified in the live session during JZA-005; audible music and collision sounds in the live session are not yet verified.
+  - Still pending (human decisions): release date in `CHANGELOG.md`, public GitHub repository, `v0.1.0` tag, and marketplace submission. Checkbox intentionally open.
+  - Commit evidence: `ff33b5a` (menu credits), `0537296` (docs and release tooling).
 
 ## Acceptance criteria
 
@@ -221,4 +228,4 @@ A native overlay gives Omarchy users a coherent desktop experience, supports key
 
 ## Next step
 
-Create `feat/jezz-atelier-release` from the collection branch and run JZA-004: README, license, third-party notices, changelog, contribution and security notes, validation scripts, marketplace preview, and an isolated install/enable/summon/hide/disable/remove smoke check.
+Live-check audible music and collision sounds after `omarchy plugin update io.github.julianbruno.jezz-atelier && omarchy-restart-shell`. Then the user decides on the release date, public repository creation, the `v0.1.0` tag, and marketplace submission (none authorized yet).
